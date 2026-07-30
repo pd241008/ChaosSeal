@@ -25,54 +25,32 @@ This monorepo implements the full experimental pipeline described in the IEEE Ad
 
 ## Architecture Overview
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        ChaosSeal Monorepo                       │
-├──────────────┬──────────────┬──────────────┬───────────────────┤
-│   /core      │   /netsim    │  /analysis   │   /dashboard      │
-│   (Rust)     │   (Go)       │  (Python)    │   (Next.js)       │
-│              │              │              │                   │
-│ Protocol     │ Simulation   │ Paper        │ Live operator     │
-│ engine,      │ driver,      │ figures      │ console,          │
-│ KATs,        │ TLS 1.3 &    │ (matplotlib) │ replay,           │
-│ C ABI        │ BPSec        │ stats.py     │ comparison view   │
-│              │ baselines    │              │                   │
-└──────┬───────┴──────┬───────┴──────┬──────┴─────────┬─────────┘
-       │              │              │                │
-       ▼              ▼              ▼                ▼
-   libchaosseal    goroutines    /results/*.json   read-only
-   _core.so/.a    + cgo/FFI      (single source    API route
-                        │         of truth)           │
-                        ▼                            │
-                 real network                        │
-                 events, timestamps,                 │
-                 byte counts                         │
-                                                ┌─────┴─────┐
-                                                │   /results │
-                                                │  *.json    │
-                                                └───────────┘
+```mermaid
+flowchart TB
+    subgraph CS["ChaosSeal Monorepo"]
+        CORE["core (Rust) - Protocol engine, KATs, C ABI"]
+        NETSIM["netsim (Go) - Simulation driver, TLS 1.3 & BPSec baselines"]
+        ANALYSIS["analysis (Python) - Paper figures, stats.py"]
+        DASH["dashboard (Next.js) - Live operator console"]
+    end
+
+    CORE -->|"libchaosseal_core.so/.a"| NETSIM
+    NETSIM -->|"goroutines + cgo/FFI"| RESULTS["(/results/*.json)"]
+    RESULTS --> ANALYSIS
+    RESULTS --> DASH
+    NETSIM -->|"real network events"| NET["Real network"]
 ```
 
 ---
 
 ## Pipeline
 
-```
-Rust core (crypto + kinematics + BEE)
-    │
-    ▼
-Go netsim (LEO links + satellite goroutines)
-    │  drives Rust core via CLI (JSON) or cgo
-    │  runs TLS 1.3 baseline with crypto/tls
-    │  runs BPv7/BPSec baseline with canonical CBOR
-    ▼
-/results/<run_id>.json   ← single source of truth
-    │
-    ├──────────────────┐
-    ▼                  ▼
-Python analysis    Next.js dashboard
-make figures       npm run dev
-  stats.py          (read-only)
+```mermaid
+flowchart LR
+    A["Rust core – crypto + kinematics + BEE"] --> B["Go netsim – LEO links + satellite goroutines"]
+    B -->|"drives Rust core via CLI/cgo"| C["/results/<run_id>.json"]
+    C --> D["Python analysis – figures, stats.py"]
+    C --> E["Next.js dashboard – npm run dev, read-only"]
 ```
 
 ### Data Flow Contract
