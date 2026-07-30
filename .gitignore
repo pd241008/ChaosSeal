@@ -1,0 +1,60 @@
+# Rust
+/target/
+**/*.rs.bk
+Cargo.lock
+**/*.rlib
+**/*.so
+**/*.d
+**/*.rmeta
+**/*.o
+**/*.a
+
+# Go
+/go.sum
+/go.mod
+/.vscode/
+/.idea/
+*.exe
+*.test
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node.js / Next.js
+node_modules/
+.next/
+out/
+build/
+.npm
+.yarn/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Results / data
+/results/*.json
+!results/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Benchmark / analysis artifacts
+/analysis/figures/*.pdf
+/analysis/figures/*.png
+*.svg
