@@ -27,20 +27,18 @@ This monorepo implements the full experimental pipeline described in the IEEE Ad
 
 ```mermaid
 flowchart TB
-    subgraph CS [ChaosSeal Monorepo]
-        direction TB
-        CORE[core (Rust) - Protocol engine, KATs, C ABI]
-        NETSIM[netsim (Go) - Simulation driver, TLS 1.3 & BPSec baselines]
-        ANALYSIS[analysis (Python) - Paper figures, stats.py]
-        DASH[dashboard (Next.js) - Live operator console]
+    subgraph CS["ChaosSeal Monorepo"]
+        CORE["core (Rust) - Protocol engine, KATs, C ABI"]
+        NETSIM["netsim (Go) - Simulation driver, TLS 1.3 & BPSec baselines"]
+        ANALYSIS["analysis (Python) - Paper figures, stats.py"]
+        DASH["dashboard (Next.js) - Live operator console"]
     end
 
-    CORE -->|libchaosseal_core.so/.a| NETSIM
-    NETSIM -->|goroutines + cgo/FFI| RESULTS[(/results/*.json - single source of truth)]
+    CORE -->|"libchaosseal_core.so/.a"| NETSIM
+    NETSIM -->|"goroutines + cgo/FFI"| RESULTS["(/results/*.json)"]
     RESULTS --> ANALYSIS
     RESULTS --> DASH
-    
-    NETSIM -->|real network events| NET[Real network - events, timestamps, byte counts]
+    NETSIM -->|"real network events"| NET["Real network"]
 ```
 
 ---
@@ -49,10 +47,10 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    A[Rust core - crypto + kinematics + BEE] --> B[Go netsim - LEO links + satellite goroutines]
-    B -->|drives Rust core via CLI/cgo| C[/results/<run_id>.json - single source of truth/]
-    C --> D[Python analysis - make figures, stats.py]
-    C --> E[Next.js dashboard - npm run dev, read-only]
+    A["Rust core – crypto + kinematics + BEE"] --> B["Go netsim – LEO links + satellite goroutines"]
+    B -->|"drives Rust core via CLI/cgo"| C["/results/<run_id>.json"]
+    C --> D["Python analysis – figures, stats.py"]
+    C --> E["Next.js dashboard – npm run dev, read-only"]
 ```
 
 ### Data Flow Contract
