@@ -1,0 +1,12 @@
+language = "C"
+include_guard = "CHAOSSEAL_CORE_H"
+line_length = 100
+tab_width = 4
+style = "tag"
+
+[export]
+include = ["chaosseal_compute_lambda1", "chaosseal_free_string", "chaosseal_bee_ciphertext_size"]
+
+[defines]
+"target_os = macos" = "TARGET_OS_MACOS"
+"target_os = linux" = "TARGET_OS_LINUX"
