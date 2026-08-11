@@ -12,6 +12,7 @@ Cargo.lock
 # Go
 /go.sum
 /go.mod
+/netsim/netsim
 /.vscode/
 /.idea/
 *.exe
