@@ -35,11 +35,32 @@ Each run produces `/results/<run_id>.json` containing:
 
 ```bash
 cd netsim
-go mod init github.com/chaosseal/netsim  # if first run
+go build ./...
+go vet ./...
 go test ./...
-go run .
 ```
+
+## Usage
+
+```bash
+# From the repo root (defaults use a root-relative Rust CLI path):
+go run ./netsim --seed 12345 --results-dir results
+
+# Or point the simulator at the release-built Rust core:
+go run ./netsim --seed 12345 --rust-cli core/target/release/chaosseal
+
+# Override simulation parameters:
+go run ./netsim --satellites 48 --duration 600 --baselines chaosseal,tls13,bpsec
+```
+
+Run `go run ./netsim --help` for the full flag list. Every stochastic and
+geometric input derives from `--seed`, so a run reproduces exactly given the
+same flags and git commit.
 
 ## Status
 
-Placeholder. Full implementation pending.
+Implemented and tested (`go test ./...` green). Smoke-tested end-to-end with
+the release-built Rust core: a 24-satellite / 600 s constellation run produces
+all three baselines with real cryptography (TLS 1.3 handshake, BPv7 bundle
+with BIB+BCB, Rust Lyapunov + BEE revocation broadcast) and writes
+`results/<run_id>.json`.
