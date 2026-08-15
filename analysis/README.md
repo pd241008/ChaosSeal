@@ -9,11 +9,23 @@ Paper figures and statistics. Reads `/results/*.json` only — never recomputes 
 | `stats.py` | Prints actual numbers (mean / median / p95) quoted in the paper |
 | `figures.py` | Generates the 3 paper figures via matplotlib |
 
+`stats.py` exposes the shared loading and metric helpers that `figures.py`
+imports, so both scripts read exactly the same JSON fields.
+
 ## Figures
 
-1. BEE ciphertext size vs |R|
-2. Resynchronization latency distribution
-3. Throughput comparison (ChaosSeal vs TLS 1.3 vs BPSec)
+1. `figures/bee_size_vs_r.pdf` — BEE ciphertext size vs `|R|` (log-log, from the `bee-r` sweep runs)
+2. `figures/resync_latency.pdf` — Distribution of one-way link latency over the visible pass (from `link_stats.latency_samples_ms`)
+3. `figures/throughput.pdf` — Effective throughput comparison (ChaosSeal vs TLS 1.3 vs BPSec)
+
+## Metric definitions (as computed in `stats.py`)
+
+- **Revocation link latency** — `latency_ms` of each BEE revocation update (transmission happens at the strongest-link moment, so this is the closest-approach propagation delay).
+- **Visible link latency** — every sampled one-way latency where the satellite was above the minimum elevation.
+- **Throughput (Mbps)** — effective bits per second of each baseline operation:
+  - ChaosSeal: `sum(ciphertext_bytes)*8 / sum(transfer_sec + latency_ms/1000)` over the `R` revocation updates
+  - TLS 1.3: `(bytes_sent + bytes_received)*8 / (handshake_sec + app_payload_sec)`
+  - BPSec: `bundle_size_bytes*8 / transfer_sec` (transfer already includes propagation)
 
 ## Style
 
@@ -27,8 +39,11 @@ Paper figures and statistics. Reads `/results/*.json` only — never recomputes 
 cd analysis
 pip install matplotlib numpy
 make figures
+make stats
 ```
 
 ## Status
 
-Placeholder. Full implementation pending.
+Implemented. Verified against 15 real `netsim` runs (5 seeds at the paper's
+parameter set plus a `|R|` sweep 1–512). All numbers in the paper must trace
+to `stats.py` output over `/results/*.json`.
