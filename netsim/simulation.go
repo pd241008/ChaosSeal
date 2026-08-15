@@ -89,14 +89,15 @@ func (s *Simulation) surveyLinks() *LinkStats {
 	stats := &LinkStats{Satellites: len(s.sats)}
 
 	var (
-		visibleCount int
-		totalLatency float64
-		maxLatency   float64
-		lossCount    int
-		burstCount   int
-		maxBurst     int
-		samples      int
-		prevVisible  = make([]bool, len(s.sats))
+		visibleCount    int
+		totalLatency    float64
+		maxLatency      float64
+		lossCount       int
+		burstCount      int
+		maxBurst        int
+		samples         int
+		latencySamples  []float64
+		prevVisible     = make([]bool, len(s.sats))
 	)
 
 	for t := 0.0; t <= s.cfg.DurationSec; t += surveyStepSec {
@@ -110,6 +111,9 @@ func (s *Simulation) surveyLinks() *LinkStats {
 
 			lat := s.gs.OneWayLatencySec(sat, t) * 1000 // ms
 			totalLatency += lat
+			if visible {
+				latencySamples = append(latencySamples, lat)
+			}
 			if lat > maxLatency {
 				maxLatency = lat
 			}
@@ -164,6 +168,7 @@ func (s *Simulation) surveyLinks() *LinkStats {
 	}
 	stats.BurstCount = burstCount
 	stats.MaxBurstLen = maxBurst
+	stats.LatencySamplesMs = latencySamples
 	return stats
 }
 

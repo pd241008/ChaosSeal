@@ -34,13 +34,14 @@ type Event struct {
 
 // LinkStats aggregates the geometric and channel statistics over the run.
 type LinkStats struct {
-	Satellites    int     `json:"satellites"`
-	VisiblePct    float64 `json:"visible_pct"`
-	MeanLatencyMs float64 `json:"mean_latency_ms"`
-	MaxLatencyMs  float64 `json:"max_latency_ms"`
-	LossRate      float64 `json:"loss_rate"`
-	BurstCount    int     `json:"burst_count"`
-	MaxBurstLen   int     `json:"max_burst_len"`
+	Satellites       int       `json:"satellites"`
+	VisiblePct       float64   `json:"visible_pct"`
+	MeanLatencyMs    float64   `json:"mean_latency_ms"`
+	MaxLatencyMs     float64   `json:"max_latency_ms"`
+	LossRate         float64   `json:"loss_rate"`
+	BurstCount       int       `json:"burst_count"`
+	MaxBurstLen      int       `json:"max_burst_len"`
+	LatencySamplesMs []float64 `json:"latency_samples_ms,omitempty"`
 }
 
 // NewRunResult initializes a result for the given config.
