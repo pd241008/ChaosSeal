@@ -7,7 +7,7 @@ impl Q32_32 {
     pub const ZERO: Self = Self(0);
     pub const ONE: Self = Self(1 << 32);
     pub const TWO: Self = Self(2 << 32);
-    pub const PI: Self = Self(((std::f64::consts::PI * (1u64 << 32) as f64) as i64));
+    pub const PI: Self = Self((std::f64::consts::PI * (1u64 << 32) as f64) as i64);
     pub const FRAC_PI_2: Self = Self((std::f64::consts::FRAC_PI_2 * (1u64 << 32) as f64) as i64);
     pub const FRAC_PI_4: Self = Self((std::f64::consts::FRAC_PI_4 * (1u64 << 32) as f64) as i64);
     pub const EPSILON: Self = Self(1);
@@ -43,7 +43,6 @@ impl Q32_32 {
         if self.0 < 0 { return Self(0); }
         let x = self.0 as u64;
         let mut r = (x >> 16) as u64;
-        let mut b = 1u64 << 30;
         loop {
             let q = x / r;
             if q >= r {
@@ -52,7 +51,6 @@ impl Q32_32 {
             let t = (r + q) >> 1;
             if t == r { break; }
             r = t;
-            b <<= 1;
         }
         Self((r << 16) as i64)
     }
@@ -154,6 +152,7 @@ mod tests {
         let one = Q32_32::ONE;
         assert!((zero.sin().to_f64() - 0.0).abs() < 1e-6);
         assert!((zero.cos().to_f64() - 1.0).abs() < 1e-6);
+        assert!((one.sin().to_f64() - 1.0f64.sin()).abs() < 1e-6);
     }
 
     #[test]

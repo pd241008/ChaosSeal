@@ -26,7 +26,7 @@ impl MultiPendulum {
         Q32_32::from_f64(9.80665)
     }
 
-    pub fn derivatives(&self, t: Q32_32, state: &[Q32_32]) -> Vec<Q32_32> {
+    pub fn derivatives(&self, _t: Q32_32, state: &[Q32_32]) -> Vec<Q32_32> {
         let n = self.masses.len();
         let mut deriv = vec![Q32_32::ZERO; self.dimension()];
 

@@ -1,4 +1,4 @@
-use aes::{Aes256, cipher::{KeyInit, KeyIvInit, StreamCipher}};
+use aes::{Aes256, cipher::{KeyIvInit, StreamCipher}};
 use ctr::Ctr128BE;
 use generic_array::GenericArray;
 use hkdf::Hkdf;
@@ -7,8 +7,6 @@ use rand_chacha::ChaCha20Rng;
 use rand::SeedableRng;
 use sha2::Sha256;
 use zeroize::Zeroize;
-
-use crate::fixed::Q32_32;
 
 #[derive(Clone)]
 pub struct AesCtrCipher {

@@ -1,6 +1,6 @@
 use super::*;
 
-pub fn serialize_ciphertext(engine: &BEEEngine, covering: &[usize]) -> Vec<u8> {
+pub fn serialize_ciphertext(_engine: &BEEEngine, covering: &[usize]) -> Vec<u8> {
     let mut out = Vec::new();
     out.extend_from_slice(&(covering.len() as u32).to_be_bytes());
     for &node in covering {
