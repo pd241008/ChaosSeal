@@ -14,6 +14,8 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/chaosseal/netsim/core/engine"
 )
 
 func main() {
@@ -24,12 +26,12 @@ func main() {
 }
 
 func run(args []string) error {
-	cfg, err := ParseConfig(args)
+	cfg, err := engine.ParseConfig(args)
 	if err != nil {
 		return err
 	}
 
-	resultsDir, err := ResolveResultsDir(cfg.ResultsDir)
+	resultsDir, err := engine.ResolveResultsDir(cfg.ResultsDir)
 	if err != nil {
 		return err
 	}
@@ -37,7 +39,7 @@ func run(args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	sim := NewSimulation(cfg)
+	sim := engine.NewSimulation(cfg)
 	result, err := sim.Run(ctx)
 	if err != nil {
 		return err

@@ -136,13 +136,18 @@ Reads `/results/*.json` only. Never recomputes protocol logic.
 2. Resynchronization latency distribution
 3. Throughput comparison (ChaosSeal vs TLS 1.3 vs BPSec)
 
-**Style:** serif fonts, no gridlines by default, vector PDF output.
+**Style:** serif fonts, no gridlines by default, vector PDF output into `analysis/figures/`.
 
 **Run:**
 ```bash
 cd analysis
 make figures
+make stats
 ```
+
+`figures.py` imports its loading and metric helpers from `stats.py`, so both
+read the exact same JSON fields. Figure and PDF artifacts are gitignored
+runtime outputs; only the scripts are versioned.
 
 ---
 
@@ -253,12 +258,12 @@ If you build on this work, please cite the paper and consider contributing impro
 | Component | Status |
 |-----------|--------|
 | core (Rust) | Compiling, 19/19 tests passing |
-| netsim (Go) | Placeholder directories (next deliverable) |
-| analysis (Python) | Placeholder directories (next deliverable) |
+| netsim (Go) | Implemented, tests passing (TLS 1.3 + BPSec baselines, JSON results) |
+| analysis (Python) | Implemented, `stats.py` + `figures.py` producing the 3 paper figures |
 | dashboard (Next.js) | Placeholder directories (last deliverable) |
 
 Deliverable order per project plan:
 1. Rust core with KATs passing ✅
-2. Go netsim + TLS 1.3 baseline + BPSec baseline
-3. Python analysis producing 3 paper figures
+2. Go netsim + TLS 1.3 baseline + BPSec baseline ✅
+3. Python analysis producing 3 paper figures ✅
 4. Next.js dashboard

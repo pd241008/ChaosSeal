@@ -1,8 +1,10 @@
-package main
+package engine
 
 import (
 	"context"
 	"testing"
+
+	"github.com/chaosseal/netsim/core/client"
 )
 
 func TestSimulationRunsAllBaselines(t *testing.T) {
@@ -89,7 +91,7 @@ func TestSimulationChaosSealInvokesRust(t *testing.T) {
 	if !ok {
 		t.Fatalf("chaosseal baseline not a map: %T", res.Baselines["chaosseal"])
 	}
-	bee, ok := cs["bee"].(*BeeSizeResult)
+	bee, ok := cs["bee"].(*client.BeeSizeResult)
 	if !ok {
 		t.Fatalf("bee result wrong type: %T", cs["bee"])
 	}

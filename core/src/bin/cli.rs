@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use clap::{Parser, Subcommand};
 use chaosseal_core::*;
 use serde::Serialize;

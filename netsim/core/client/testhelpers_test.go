@@ -1,13 +1,10 @@
-package main
+package client
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 )
-
-func epoch() time.Time { return time.Now() }
 
 // fakeRustCLI writes a small shell script that emulates the Rust core CLI's
 // JSON output so tests can exercise RustCoreClient and the full simulation

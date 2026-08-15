@@ -1,9 +1,17 @@
-package main
+package kinematics
 
 import (
 	"math/rand"
 	"time"
 )
+
+// LossConfig configures the Gilbert-Elliott two-state channel model.
+type LossConfig struct {
+	PGoodToBad float64 `json:"p_good_to_bad"`
+	PBadToGood float64 `json:"p_bad_to_good"`
+	GoodLoss   float64 `json:"good_state_loss_prob"`
+	BadLoss    float64 `json:"bad_state_loss_prob"`
+}
 
 // GilbertElliott is a two-state Markov channel model (RFC-style burst loss).
 // State 0 = "good", state 1 = "bad" (burst). Losses are i.i.d. within each

@@ -1,5 +1,3 @@
-use crate::fixed::Q32_32;
-
 #[derive(Clone, Debug)]
 pub struct CoveringSet {
     pub nodes: Vec<usize>,

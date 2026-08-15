@@ -32,7 +32,6 @@ impl LyapunovEstimator {
         }
 
         let mut log_sum = vec![Q32_32::ZERO; self.tangent_dim];
-        let mut count = 0usize;
 
         for step in 0..self.steps {
             let (nt, ns) = {
@@ -64,7 +63,7 @@ impl LyapunovEstimator {
             traj = ns;
 
             for i in 0..self.tangent_dim {
-                let mut tv = tangent[i].clone();
+                let tv = tangent[i].clone();
                 let d = system(nt, &traj);
                 let mut new_tv = vec![Q32_32::ZERO; tv.len()];
                 for j in 0..tv.len() {
@@ -107,10 +106,9 @@ impl LyapunovEstimator {
                                 tangent[i][k] = tangent[i][k] / norm_i;
                             }
                         }
-                    }
                 }
-                count += self.reorthonormalize_interval;
             }
+        }
         }
 
         let total_t = Q32_32::from_f64(self.steps as f64) * self.dt;

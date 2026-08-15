@@ -1,4 +1,3 @@
-use crate::fixed::Q32_32;
 use crate::crypto::hmac_sha256;
 use rand::RngCore;
 
@@ -38,7 +37,6 @@ impl BEEEngine {
         for i in 0..self.n {
             tree[0][i] = (0..32).map(|_| rng.next_u32() as u8).collect();
         }
-        let mut offset = self.n;
         for level in 1..=levels {
             let nodes_at_level = self.n >> (level - 1);
             for i in 0..nodes_at_level {

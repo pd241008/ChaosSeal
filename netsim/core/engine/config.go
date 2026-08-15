@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"encoding/json"
@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/chaosseal/netsim/core/kinematics"
 )
 
 // Config captures the full parameter set of a simulation run. Every field is
@@ -28,15 +30,7 @@ type Config struct {
 	DownlinkBps     float64  `json:"downlink_bandwidth_bps"`
 	LyapunovSteps   int      `json:"lyapunov_steps"`
 
-	Loss LossConfig `json:"loss_model"`
-}
-
-// LossConfig configures the Gilbert-Elliott two-state channel model.
-type LossConfig struct {
-	PGoodToBad float64 `json:"p_good_to_bad"`
-	PBadToGood float64 `json:"p_bad_to_good"`
-	GoodLoss   float64 `json:"good_state_loss_prob"`
-	BadLoss    float64 `json:"bad_state_loss_prob"`
+	Loss kinematics.LossConfig `json:"loss_model"`
 }
 
 // DefaultConfig returns the parameter set used for the paper runs.
@@ -57,7 +51,7 @@ func DefaultConfig() *Config {
 		ResultsDir:    "results",
 		DownlinkBps:   50e6, // 50 Mbps downlink, Starlink-class
 		LyapunovSteps: 10000,
-		Loss: LossConfig{
+		Loss: kinematics.LossConfig{
 			PGoodToBad: 0.05,
 			PBadToGood: 0.35,
 			GoodLoss:   0.001,
