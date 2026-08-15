@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"context"
@@ -6,6 +6,10 @@ import (
 	"math"
 	"math/rand"
 	"time"
+
+	"github.com/chaosseal/netsim/core/client"
+	"github.com/chaosseal/netsim/core/crypto"
+	"github.com/chaosseal/netsim/core/kinematics"
 )
 
 const (
@@ -18,9 +22,9 @@ const (
 type Simulation struct {
 	cfg           *Config
 	rng           *rand.Rand
-	sats          []*Satellite
-	gs            *GroundStation
-	channels      []*GilbertElliott
+	sats          []*kinematics.Satellite
+	gs            *kinematics.GroundStation
+	channels      []*kinematics.GilbertElliott
 	result        *RunResult
 	measureSat    int
 	measureOffset float64
@@ -31,21 +35,21 @@ type Simulation struct {
 // evenly across orbitalPlanes of a Walker constellation.
 func NewSimulation(cfg *Config) *Simulation {
 	rng := rand.New(rand.NewSource(cfg.Seed))
-	gs := &GroundStation{LatDeg: cfg.GroundLat, LonDeg: cfg.GroundLon}
+	gs := &kinematics.GroundStation{LatDeg: cfg.GroundLat, LonDeg: cfg.GroundLon}
 
-	sats := make([]*Satellite, 0, cfg.Satellites)
+	sats := make([]*kinematics.Satellite, 0, cfg.Satellites)
 	for i := 0; i < cfg.Satellites; i++ {
 		plane := i % orbitalPlanes
 		raan := 360.0 * float64(plane) / orbitalPlanes
 		perPlane := (cfg.Satellites + orbitalPlanes - 1) / orbitalPlanes
 		idxInPlane := i / orbitalPlanes
 		phase := 2 * math.Pi * float64(idxInPlane) / float64(perPlane)
-		sats = append(sats, NewSatellite(i, cfg.AltitudeKm, 53*math.Pi/180, raan, phase))
+		sats = append(sats, kinematics.NewSatellite(i, cfg.AltitudeKm, 53*math.Pi/180, raan, phase))
 	}
 
-	channels := make([]*GilbertElliott, len(sats))
+	channels := make([]*kinematics.GilbertElliott, len(sats))
 	for i := range sats {
-		channels[i] = NewGilbertElliott(cfg.Loss, rand.New(rand.NewSource(cfg.Seed+int64(i)+1)))
+		channels[i] = kinematics.NewGilbertElliott(cfg.Loss, rand.New(rand.NewSource(cfg.Seed+int64(i)+1)))
 	}
 
 	return &Simulation{
@@ -194,15 +198,15 @@ func (s *Simulation) bestMeasurement() (sat int, offset float64) {
 
 // referenceLink returns the link for the satellite chosen by bestMeasurement,
 // positioned at the measurement offset.
-func (s *Simulation) referenceLink() *Link {
+func (s *Simulation) referenceLink() *kinematics.Link {
 	epoch := time.Now().Add(-time.Duration(s.measureOffset * float64(time.Second)))
-	return NewLink(s.sats[s.measureSat], s.gs, s.cfg.MinElevDeg, s.channels[s.measureSat], epoch)
+	return kinematics.NewLink(s.sats[s.measureSat], s.gs, s.cfg.MinElevDeg, s.channels[s.measureSat], epoch)
 }
 
 // runChaosSeal drives the Rust core CLI: it computes a Lyapunov exponent and
 // a BEE ciphertext, then simulates a revocation broadcast over the link.
 func (s *Simulation) runChaosSeal(ctx context.Context) error {
-	rust := &RustCoreClient{Command: s.cfg.RustCLI}
+	rust := &client.RustCoreClient{Command: s.cfg.RustCLI}
 
 	lyap, err := rust.Lyapunov(ctx, 3, 1.0, 1.0, 0.1, 0.5, s.cfg.LyapunovSteps)
 	if err != nil {
@@ -281,7 +285,7 @@ func (s *Simulation) runTLS13() error {
 		return time.Duration(baseLatency * float64(time.Second))
 	}
 
-	res, err := RunTLS13Baseline(provider, make([]byte, payloadBytes))
+	res, err := crypto.RunTLS13Baseline(provider, make([]byte, payloadBytes))
 	if err != nil {
 		return err
 	}
@@ -306,8 +310,8 @@ func (s *Simulation) runTLS13() error {
 // runBPSec builds a BPv7 bundle with a BCB (AES-256-GCM) and BIB
 // (HMAC-SHA256), transmits it over the reference link, and verifies integrity.
 func (s *Simulation) runBPSec() error {
-	key := NewBPSecKey(uint64(s.cfg.Seed))
-	iv, err := NewRandomIV()
+	key := crypto.NewBPSecKey(uint64(s.cfg.Seed))
+	iv, err := crypto.NewRandomIV()
 	if err != nil {
 		return err
 	}
@@ -316,16 +320,16 @@ func (s *Simulation) runBPSec() error {
 	for i := range payload {
 		payload[i] = byte(i % 251)
 	}
-	payloadBlock := BuildPayloadBlock(payload)
+	payloadBlock := crypto.BuildPayloadBlock(payload)
 
-	bcb, _, err := BuildBCB(key, iv, "key-0", payloadBlock)
+	bcb, _, err := crypto.BuildBCB(key, iv, "key-0", payloadBlock)
 	if err != nil {
 		return err
 	}
-	bib, _ := BuildBIB(key, "key-0", bcb)
+	bib, _ := crypto.BuildBIB(key, "key-0", bcb)
 
-	bundle := &Bundle{
-		Primary: &PrimaryBlock{
+	bundle := &crypto.Bundle{
+		Primary: &crypto.PrimaryBlock{
 			Version:     7,
 			Flags:       0,
 			Destination: "ipn:1.1",
@@ -334,18 +338,18 @@ func (s *Simulation) runBPSec() error {
 			Time:        uint64(time.Now().Unix()),
 			Lifetime:    3600,
 		},
-		Blocks: []*CanonicalBlock{payloadBlock, bcb, bib},
+		Blocks: []*crypto.CanonicalBlock{payloadBlock, bcb, bib},
 	}
 	wire := bundle.Encode()
 
-	ok, err := VerifyBIB(key, bib, bcb)
+	ok, err := crypto.VerifyBIB(key, bib, bcb)
 	if err != nil {
 		return err
 	}
 	if !ok {
 		return fmt.Errorf("BIB verification failed on generated bundle")
 	}
-	plain, err := DecryptPayload(key, iv, bcb, payloadBlock)
+	plain, err := crypto.DecryptPayload(key, iv, bcb, payloadBlock)
 	if err != nil {
 		return err
 	}
