@@ -212,10 +212,12 @@ func (s *Simulation) runChaosSeal(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	startResync := time.Now()
 	bee, err := rust.BeeSize(ctx, s.cfg.BEE_N, s.cfg.BEE_R)
 	if err != nil {
 		return err
 	}
+	resyncComputeSec := time.Since(startResync).Seconds()
 
 	out := map[string]interface{}{
 		"lyapunov":            lyap,
@@ -270,6 +272,32 @@ func (s *Simulation) runChaosSeal(ctx context.Context) error {
 		"losses":    totalLoss,
 		"loss_rate": float64(totalLoss) / float64(s.cfg.BEE_R),
 	}
+	out["resync_compute_sec"] = resyncComputeSec
+
+	// Simulate Data Transmission Phase for a single epoch
+	dataPayload := make([]byte, payloadBytes)
+	for i := range dataPayload {
+		dataPayload[i] = byte(i % 251)
+	}
+
+	startData := time.Now()
+	cryptoRes := client.EpochCrypto(dataPayload)
+	cryptoWallclockSec := time.Since(startData).Seconds()
+
+	amortizedBeeBytes := float64(bee.CiphertextSizeMin*s.cfg.BEE_R) / float64(s.cfg.BEE_N)
+	overheadBytes := float64(cryptoRes.HmacLen) + amortizedBeeBytes
+	overheadPct := overheadBytes / float64(payloadBytes)
+
+	dataTransferSec := float64(float64(payloadBytes)+overheadBytes)*8.0/s.cfg.DownlinkBps + lat
+
+	out["data_transmission"] = map[string]interface{}{
+		"payload_bytes":                   payloadBytes,
+		"crypto_wallclock_us":             cryptoWallclockSec * 1000000.0,
+		"overhead_pct":                    overheadPct,
+		"overhead_bytes_per_payload_byte": overheadPct,
+		"transfer_sec":                    dataTransferSec,
+	}
+
 	s.result.Baselines["chaosseal"] = out
 	return nil
 }
@@ -363,6 +391,9 @@ func (s *Simulation) runBPSec() error {
 	transferSec := float64(len(wire)*8)/s.cfg.DownlinkBps + lat
 	outcome := link.Transmit(t)
 
+	overheadBytes := float64(len(wire) - len(payload))
+	overheadPct := overheadBytes / float64(len(payload))
+
 	s.result.Events = append(s.result.Events, Event{
 		TimeSec: t,
 		Type:    "bpsec_bundle",
@@ -370,14 +401,17 @@ func (s *Simulation) runBPSec() error {
 		Value:   float64(len(wire)),
 	})
 	s.result.Baselines["bpsec"] = map[string]interface{}{
-		"bundle_size_bytes": len(wire),
-		"payload_bytes":     len(payload),
-		"ciphertext_bytes":  len(wire) - len(payload),
-		"transfer_sec":      transferSec,
-		"latency_ms":        lat * 1000,
-		"lost":              outcome.Lost,
-		"bib_verified":      ok,
-		"payload_roundtrip": true,
+		"bundle_size_bytes":               len(wire),
+		"payload_bytes":                   len(payload),
+		"ciphertext_bytes":                len(wire) - len(payload),
+		"transfer_sec":                    transferSec,
+		"latency_ms":                      lat * 1000,
+		"lost":                            outcome.Lost,
+		"bib_verified":                    ok,
+		"payload_roundtrip":               true,
+		"overhead_pct":                    overheadPct,
+		"overhead_bytes_per_payload_byte": overheadPct,
 	}
 	return nil
 }
+

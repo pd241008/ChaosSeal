@@ -43,7 +43,7 @@ func DefaultConfig() *Config {
 		GroundLon:   -122.4194,
 		AltitudeKm:  550,
 		MinElevDeg:  10,
-		DurationSec: 600,
+		DurationSec: 1200,
 		Baselines:   []string{"chaosseal", "tls13", "bpsec"},
 		BEE_N:         1024,
 		BEE_R:         8,
@@ -71,6 +71,7 @@ func ParseConfig(args []string) (*Config, error) {
 	)
 	fs := flag.NewFlagSet("netsim", flag.ContinueOnError)
 	fs.StringVar(&configPath, "config", "", "path to a JSON config file (optional)")
+	fs.StringVar(&cfg.RunID, "run-id", cfg.RunID, "run ID (defaults to 'manual')")
 	fs.Int64Var(&cfg.Seed, "seed", cfg.Seed, "64-bit RNG seed")
 	fs.IntVar(&cfg.Satellites, "satellites", cfg.Satellites, "number of LEO satellites")
 	fs.Float64Var(&cfg.GroundLat, "lat", cfg.GroundLat, "ground station latitude (deg)")
