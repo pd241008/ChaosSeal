@@ -134,7 +134,15 @@ Reads `/results/*.json` only. Never recomputes protocol logic.
 **Figures:**
 1. BEE ciphertext size vs |R|
 2. Resynchronization latency distribution
-3. Throughput comparison (ChaosSeal vs TLS 1.3 vs BPSec)
+3. Raw Throughput comparison (ChaosSeal vs TLS 1.3 vs BPSec)
+4. Effective Goodput comparison (ChaosSeal vs TLS 1.3 vs BPSec)
+5. Goodput Degradation vs |R|
+
+<img src="./docs/figures/throughput.pdf" alt="Raw Throughput" width="400"/>
+<img src="./docs/figures/goodput.pdf" alt="Effective Goodput" width="400"/>
+<img src="./docs/figures/goodput_vs_r.pdf" alt="Goodput Degradation vs R" width="400"/>
+<img src="./docs/figures/bee_size_vs_r.pdf" alt="BEE Size vs R" width="400"/>
+<img src="./docs/figures/resync_latency.pdf" alt="Resync Latency" width="400"/>
 
 **Style:** serif fonts, no gridlines by default, vector PDF output into `analysis/figures/`.
 
@@ -239,6 +247,15 @@ go run . --seed <rng_seed> --config <parameter_json>
 ```
 
 The Python `stats.py` script reads the same JSON and reports the exact numbers quoted in the paper. **Never hand-type a number into the paper that isn't traceable to `stats.py` output.**
+
+---
+
+## Threat Model
+
+ChaosSeal assumes a Dolev-Yao attacker capable of intercepting, replaying, and dropping packets. Key architectural guarantees:
+- **Revoked nodes** cannot collude to recover the current epoch's symmetric key (Subset-Difference covering set property).
+- **Collusion Resistance at Scale:** It is important to note that as the number of revoked receivers $|R|$ grows large, the system's efficiency and goodput degrades predictably, but the cryptographic collusion-resistance properties of the architecture remain fully intact and unconditionally hold at any $|R|$.
+- **Active attackers** cannot desynchronize the Lyapunov state between the sender and valid receivers without possessing the key (HMAC binding).
 
 ---
 
