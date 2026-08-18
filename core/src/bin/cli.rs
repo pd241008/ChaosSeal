@@ -62,7 +62,7 @@ fn main() {
                 success: true,
                 output: serde_json::json!({
                     "lambda1": lambda1.to_f64(),
-                    "dt_bound": (Q32_32::from_f64(0.01) / (lambda1 + Q32_32::from_f64(0.001))).to_f64(),
+                    "dt_bound": f64::max(256.0 * std::f64::consts::LN_2 / lambda1.to_f64(), 1.0 / lambda1.to_f64()),
                     "parameters": {
                         "pendulums": pendulums,
                         "mass": mass,
