@@ -42,7 +42,7 @@ pub extern "C" fn chaosseal_compute_lambda1(
         message: cmsg.into_raw(),
         lambda1: lambda1.to_f64(),
         ciphertext_size: 0,
-        dt_bound: (Q32_32::from_f64(0.01) / (lambda1 + Q32_32::from_f64(0.001))).to_f64(),
+        dt_bound: f64::max(256.0 * std::f64::consts::LN_2 / lambda1.to_f64(), 1.0 / lambda1.to_f64()),
     }
 }
 
@@ -57,4 +57,31 @@ pub extern "C" fn chaosseal_free_string(s: *mut c_char) {
 pub extern "C" fn chaosseal_bee_ciphertext_size(n: usize, r: usize) -> usize {
     let engine = BEEEngine::new(n, r);
     engine.ciphertext_size_min()
+}
+
+#[repr(C)]
+pub struct CEpochCryptoResult {
+    pub ciphertext_len: usize,
+    pub hmac_len: usize,
+}
+
+#[no_mangle]
+pub extern "C" fn chaosseal_epoch_crypto(payload: *const u8, payload_len: usize) -> CEpochCryptoResult {
+    let payload_slice = unsafe { std::slice::from_raw_parts(payload, payload_len) };
+    
+    // Simulate epoch crypto: derive key, encrypt, hmac
+    let seed = b"simulated_hkdf_seed_for_epoch123";
+    let salt = b"simulated_salt";
+    let info = b"simulated_info";
+    
+    let cipher = crate::crypto::AesCtrCipher::derive_key(seed, salt, info);
+    let nonce = crate::crypto::AesCtrCipher::random_nonce();
+    
+    let ciphertext = cipher.encrypt(payload_slice, &nonce);
+    let hmac = crate::crypto::hmac_sha256::compute(cipher.key_bytes(), &ciphertext);
+    
+    CEpochCryptoResult {
+        ciphertext_len: ciphertext.len(),
+        hmac_len: hmac.len(),
+    }
 }

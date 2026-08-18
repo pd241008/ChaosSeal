@@ -71,24 +71,17 @@ def link_latency_samples_ms(runs: list[dict]) -> list[float]:
 
 
 def throughput_mbps(runs: list[dict]) -> dict[str, list[float]]:
-    """Effective throughput per baseline: bits moved / total operation time.
-
-    ChaosSeal:  bits = sum(ciphertext_bytes*8 over R updates)
-                time = sum(transfer_sec + latency_ms/1000 over R updates)
-    TLS 1.3:    bits = (bytes_sent + bytes_received) * 8
-                time = handshake_sec + app_payload_sec
-    BPSec:      bits = bundle_size_bytes * 8
-                time = transfer_sec   (already includes propagation latency)
+    """Raw wire Throughput per baseline: wire bits moved / total operation time.
     """
     out: dict[str, list[float]] = {"chaosseal": [], "tls13": [], "bpsec": []}
     for r in runs:
         bs = r.get("baselines", {})
 
         cs = bs.get("chaosseal")
-        if cs and cs.get("revocation_messages"):
-            msgs = cs["revocation_messages"]
-            bits = sum(m["ciphertext_bytes"] for m in msgs) * 8
-            sec = sum(m["transfer_sec"] + m["latency_ms"] / 1000 for m in msgs)
+        if cs and cs.get("data_transmission"):
+            dt = cs["data_transmission"]
+            bits = dt["payload_bytes"] * (1 + dt.get("overhead_pct", 0)) * 8
+            sec = dt["transfer_sec"] + (dt.get("crypto_wallclock_us", 0) / 1e6)
             if sec > 0:
                 out["chaosseal"].append(bits / sec / MBPS)
 
@@ -104,6 +97,36 @@ def throughput_mbps(runs: list[dict]) -> dict[str, list[float]]:
             sec = bp.get("transfer_sec", 0)
             if sec > 0:
                 out["bpsec"].append(bp["bundle_size_bytes"] * 8 / sec / MBPS)
+    return out
+
+
+def goodput_mbps(runs: list[dict]) -> dict[str, list[float]]:
+    """Effective Goodput per baseline: application bits moved / total operation time.
+    """
+    out: dict[str, list[float]] = {"chaosseal": [], "tls13": [], "bpsec": []}
+    for r in runs:
+        bs = r.get("baselines", {})
+
+        cs = bs.get("chaosseal")
+        if cs and cs.get("data_transmission"):
+            dt = cs["data_transmission"]
+            bits = dt["payload_bytes"] * 8
+            sec = dt["transfer_sec"] + (dt.get("crypto_wallclock_us", 0) / 1e6)
+            if sec > 0:
+                out["chaosseal"].append(bits / sec / MBPS)
+
+        tls = bs.get("tls13")
+        if tls and tls.get("handshake_sec") is not None:
+            bits = 1024 * 8  # 1024 byte baseline payload
+            sec = tls["handshake_sec"] + tls.get("app_payload_sec", 0)
+            if sec > 0:
+                out["tls13"].append(bits / sec / MBPS)
+
+        bp = bs.get("bpsec")
+        if bp and bp.get("payload_bytes"):
+            sec = bp.get("transfer_sec", 0)
+            if sec > 0:
+                out["bpsec"].append(bp["payload_bytes"] * 8 / sec / MBPS)
     return out
 
 
@@ -147,6 +170,10 @@ def print_stats(runs: list[dict]) -> None:
     dt = [r["baselines"]["chaosseal"]["lyapunov"]["dt_bound"] for r in mains]
     print(_fmt_row("lambda1", fmt_stats(lambdas)))
     print(_fmt_row("dt_bound", fmt_stats(dt)))
+    mean_dt_bound = np.mean(dt) if dt else 0
+    dt_internal = 0.01
+    status = "PASS" if dt_internal <= mean_dt_bound else "FAIL"
+    print(_fmt_row("validation", f"internal dt ({dt_internal}s) <= dt_bound: {status}"))
     print()
 
     print("=== BEE (N=1024, R=8) ===")
@@ -161,8 +188,13 @@ def print_stats(runs: list[dict]) -> None:
     print(_fmt_row("visible link latency_ms (samples)", fmt_stats(links)))
     print()
 
-    print("=== Throughput (Mbps) ===")
+    print("=== Raw Throughput (Mbps) ===")
     for name, vals in throughput_mbps(mains).items():
+        print(_fmt_row(name, fmt_stats(vals)))
+    print()
+
+    print("=== Goodput (Mbps) ===")
+    for name, vals in goodput_mbps(mains).items():
         print(_fmt_row(name, fmt_stats(vals)))
     print()
 

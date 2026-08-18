@@ -20,7 +20,7 @@ under `core/`, with one Go package per concern:
 ```
 netsim/
 ├── core/
-│   ├── client/       # RustCoreClient — CLI bridge to the Rust core (mirrors Rust src/bindings)
+│   ├── client/       # RustCoreClient (CLI bridge) and cgo/FFI bindings to the Rust core
 │   ├── crypto/       # BPSec (BIB/BCB) + TLS 1.3 baseline (mirrors Rust src/crypto)
 │   ├── engine/       # config, results schema, simulation orchestration (mirrors Rust src/lib)
 │   └── kinematics/   # orbit, ground station, link + Gilbert-Elliott model (mirrors Rust src/kinematics)
@@ -32,7 +32,7 @@ netsim/
 ## Design Decisions
 
 - **BPSec implementation:** Implemented directly against RFC 9171/9172 rather than depending on a Go library, because no viable Go ≥ 1.22-compatible dependency existed at time of writing.
-- **Rust integration:** Go drives the Rust core via subprocess CLI (JSON on stdout) rather than cgo, to keep the Go build simple and avoid ABI fragility.
+- **Rust integration:** Go drives the Rust core via subprocess CLI (JSON on stdout) for one-off operations (Lyapunov exponent, BEE tree sizing), but links directly against `libchaosseal_core.a` via cgo/FFI for high-performance per-epoch cryptography.
 
 ## Results Schema
 
