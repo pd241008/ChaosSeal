@@ -28,6 +28,7 @@ from stats import (
     link_latency_samples_ms,
     load_results,
     main_runs,
+    goodput_mbps,
     throughput_mbps,
 )
 
@@ -85,10 +86,8 @@ def figure2_resync_latency(runs: list[dict]) -> str:
     return _save(fig, "resync_latency.pdf")
 
 
-def figure3_throughput(runs: list[dict]) -> str:
-    tp = throughput_mbps(main_runs(runs))
-    if not tp or not any(tp.values()):
-        raise RuntimeError("no throughput data in main runs")
+def figure3_goodput(runs: list[dict]) -> str:
+    tp = goodput_mbps(main_runs(runs))
     names = ["chaosseal", "tls13", "bpsec"]
     labels = ["ChaosSeal", "TLS 1.3", "BPSec"]
     means = [np.mean(tp[n]) for n in names]
@@ -98,18 +97,87 @@ def figure3_throughput(runs: list[dict]) -> str:
     fig, ax = plt.subplots(figsize=(4.5, 3.4))
     x = np.arange(len(names))
     colors = ["#1f77b4", "#ff7f0e", "#d62728"]
-    bars = ax.bar(x, means, width=0.6, color=colors, edgecolor="black", linewidth=0.6, yerr=[means[i] - mins[i] for i in range(len(names))], capsize=4)
+    bars = ax.bar(x, means, width=0.6, color=colors, edgecolor="black", linewidth=0.6, yerr=[max(0, means[i] - mins[i]) for i in range(len(names))], capsize=4)
     for i, (xi, mean, lo, hi) in enumerate(zip(x, means, mins, maxs)):
         jitter = np.full(len(tp[names[i]]), xi) + (np.random.default_rng(0).uniform(-0.15, 0.15, len(tp[names[i]])))
         ax.scatter(jitter, tp[names[i]], s=14, color="black", alpha=0.6, zorder=3)
-        ax.errorbar(xi, mean, yerr=[[mean - lo], [hi - mean]], fmt="none", ecolor="black", capsize=4)
+        ax.errorbar(xi, mean, yerr=[[max(0, mean - lo)], [max(0, hi - mean)]], fmt="none", ecolor="black", capsize=4)
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.set_ylabel("Goodput (Mbps)")
+    ax.set_title("Effective Goodput Comparison (R=8)")
+    for xi, m in zip(x, means):
+        ax.annotate(f"{m:.1f}", (xi, m), textcoords="offset points", xytext=(0, 6), ha="center", fontsize=9)
+    return _save(fig, "goodput.pdf")
+
+
+def figure4_throughput(runs: list[dict]) -> str:
+    tp = throughput_mbps(main_runs(runs))
+    names = ["chaosseal", "tls13", "bpsec"]
+    labels = ["ChaosSeal", "TLS 1.3", "BPSec"]
+    means = [np.mean(tp[n]) for n in names]
+    mins = [np.min(tp[n]) for n in names]
+    maxs = [np.max(tp[n]) for n in names]
+
+    fig, ax = plt.subplots(figsize=(4.5, 3.4))
+    x = np.arange(len(names))
+    colors = ["#1f77b4", "#ff7f0e", "#d62728"]
+    bars = ax.bar(x, means, width=0.6, color=colors, edgecolor="black", linewidth=0.6, yerr=[max(0, means[i] - mins[i]) for i in range(len(names))], capsize=4)
+    for i, (xi, mean, lo, hi) in enumerate(zip(x, means, mins, maxs)):
+        jitter = np.full(len(tp[names[i]]), xi) + (np.random.default_rng(0).uniform(-0.15, 0.15, len(tp[names[i]])))
+        ax.scatter(jitter, tp[names[i]], s=14, color="black", alpha=0.6, zorder=3)
+        ax.errorbar(xi, mean, yerr=[[max(0, mean - lo)], [max(0, hi - mean)]], fmt="none", ecolor="black", capsize=4)
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
     ax.set_ylabel("Throughput (Mbps)")
-    ax.set_title("Effective throughput comparison")
+    ax.set_title("Raw Link Throughput Comparison (R=8)")
     for xi, m in zip(x, means):
         ax.annotate(f"{m:.1f}", (xi, m), textcoords="offset points", xytext=(0, 6), ha="center", fontsize=9)
     return _save(fig, "throughput.pdf")
+
+
+def figure5_goodput_vs_r(runs: list[dict]) -> str:
+    # Gather goodput vs R
+    rs = set()
+    gp_by_r = {}
+    bpsec_by_r = {}
+    for r in runs:
+        rv = r.get("parameters", {}).get("bee_r")
+        if rv is None: continue
+        rs.add(rv)
+        bs = r.get("baselines", {})
+        cs = bs.get("chaosseal")
+        if cs and cs.get("data_transmission"):
+            dt = cs["data_transmission"]
+            bits = dt["payload_bytes"] * 8
+            sec = dt["transfer_sec"] + (dt.get("crypto_wallclock_us", 0) / 1e6)
+            if sec > 0:
+                gp_by_r.setdefault(rv, []).append(bits / sec / 1e6)
+        bp = bs.get("bpsec")
+        if bp and bp.get("transfer_sec", 0) > 0:
+            bpsec_by_r.setdefault(rv, []).append(bp["payload_bytes"] * 8 / bp["transfer_sec"] / 1e6)
+
+    rs = sorted(list(rs))
+    cs_means = np.array([np.mean(gp_by_r.get(r, [float("nan")])) for r in rs])
+    cs_stds = np.array([np.std(gp_by_r.get(r, [float("nan")])) for r in rs])
+    
+    bp_means = np.array([np.mean(bpsec_by_r.get(r, [float("nan")])) for r in rs])
+    bp_stds = np.array([np.std(bpsec_by_r.get(r, [float("nan")])) for r in rs])
+
+    fig, ax = plt.subplots(figsize=(5, 3.4))
+    
+    ax.plot(rs, cs_means, "o-", color="#1f77b4", label="ChaosSeal Goodput", linewidth=1.5)
+    ax.fill_between(rs, cs_means - cs_stds, cs_means + cs_stds, color="#1f77b4", alpha=0.2)
+    
+    ax.plot(rs, bp_means, "s--", color="#d62728", label="BPSec Goodput", linewidth=1.5)
+    ax.fill_between(rs, bp_means - bp_stds, bp_means + bp_stds, color="#d62728", alpha=0.2)
+    
+    ax.set_xscale("log")
+    ax.set_xlabel("Number of revoked receivers $|R|$")
+    ax.set_ylabel("Effective Goodput (Mbps)")
+    ax.set_title("Goodput Degradation vs $|R|$")
+    ax.legend()
+    return _save(fig, "goodput_vs_r.pdf")
 
 
 def main() -> int:
@@ -121,7 +189,9 @@ def main() -> int:
     paths = [
         figure1_bee_size(runs),
         figure2_resync_latency(runs),
-        figure3_throughput(runs),
+        figure3_goodput(runs),
+        figure4_throughput(runs),
+        figure5_goodput_vs_r(runs),
     ]
     for p in paths:
         print(f"wrote {p}")

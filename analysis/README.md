@@ -16,16 +16,16 @@ imports, so both scripts read exactly the same JSON fields.
 
 1. `figures/bee_size_vs_r.pdf` — BEE ciphertext size vs `|R|` (log-log, from the `bee-r` sweep runs)
 2. `figures/resync_latency.pdf` — Distribution of one-way link latency over the visible pass (from `link_stats.latency_samples_ms`)
-3. `figures/throughput.pdf` — Effective throughput comparison (ChaosSeal vs TLS 1.3 vs BPSec)
+3. `figures/throughput.pdf` — Effective Goodput comparison (ChaosSeal vs TLS 1.3 vs BPSec vs Hybrid)
 
 ## Metric definitions (as computed in `stats.py`)
 
 - **Revocation link latency** — `latency_ms` of each BEE revocation update (transmission happens at the strongest-link moment, so this is the closest-approach propagation delay).
 - **Visible link latency** — every sampled one-way latency where the satellite was above the minimum elevation.
-- **Throughput (Mbps)** — effective bits per second of each baseline operation:
-  - ChaosSeal: `sum(ciphertext_bytes)*8 / sum(transfer_sec + latency_ms/1000)` over the `R` revocation updates
-  - TLS 1.3: `(bytes_sent + bytes_received)*8 / (handshake_sec + app_payload_sec)`
-  - BPSec: `bundle_size_bytes*8 / transfer_sec` (transfer already includes propagation)
+- **Goodput (Mbps)** — effective application payload bits per second of each baseline operation:
+  - ChaosSeal/Hybrid: `payload_bytes*8 / (transfer_sec + crypto_wallclock)`
+  - TLS 1.3: `1024*8 / (handshake_sec + app_payload_sec)`
+  - BPSec: `payload_bytes*8 / transfer_sec` (transfer already includes propagation)
 
 ## Style
 
