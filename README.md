@@ -1,5 +1,7 @@
 # ChaosSeal
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22005854.svg)](https://doi.org/10.5281/zenodo.22005854)
+
 **Reference implementation of the ChaosSeal revocation and resynchronization protocol for LEO satellite constellations.**
 
 This monorepo implements the full experimental pipeline described in the IEEE Ad Hoc Networks submission: Rust protocol core → Go network simulator → structured JSON results → Python paper figures + Next.js live operator console.
