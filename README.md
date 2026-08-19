@@ -1,6 +1,9 @@
 # Dynamic Node Revocation and Chaos-Derived Key Rotation in LEO Satellite Swarms: A Dual-Layer Cryptographic Protocol
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22005854.svg)](https://doi.org/10.5281/zenodo.22005854)
+![Rust](https://img.shields.io/badge/Rust-000000?style=flat&logo=rust&logoColor=white)
+![Go](https://img.shields.io/badge/Go-00ADD8?style=flat&logo=go&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)
 
 > **Reference Implementation for the IEEE Ad Hoc Networks Submission**  
 > **Authors:** Prathmesh Desai, Avinash Sastry  
