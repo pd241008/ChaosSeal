@@ -8,10 +8,10 @@ import matplotlib.pyplot as plt
 R = 512
 N = 1024
 BEE_CIPHERTEXT = 65536
-HMAC_LEN = 32
+HMAC_LEN = 16
 PAYLOAD = 1024
 DOWNLINK_BPS = 50e6
-LATENCY_BEST = 0.00387 # 3.87 ms best-measurement latency used in 1200s simulation
+LATENCY_BEST = 0.00485 # 4.85 ms average best-measurement latency across the 600s window sweeps
 
 def main():
     # Burst phase (R update messages, pipelined without individual latency overhead to match simulation area)
@@ -45,8 +45,10 @@ def main():
 
     os.makedirs("figures", exist_ok=True)
     out_path = "figures/burst_goodput_time.pdf"
+    png_path = "figures/burst_goodput_time.png"
     fig.savefig(out_path, format="pdf", bbox_inches="tight")
-    print(f"Wrote {out_path} (T_epoch={t_epoch:.3f}s, Amortized={amortized_goodput:.3f} Mbps)")
+    fig.savefig(png_path, format="png", bbox_inches="tight", dpi=150)
+    print(f"Wrote {out_path} and {png_path} (T_epoch={t_epoch:.3f}s, Amortized={amortized_goodput:.3f} Mbps)")
 
 if __name__ == "__main__":
     main()
