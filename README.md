@@ -1,288 +1,135 @@
-# ChaosSeal
+# Dynamic Node Revocation and Chaos-Derived Key Rotation in LEO Satellite Swarms: A Dual-Layer Cryptographic Protocol
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22005854.svg)](https://doi.org/10.5281/zenodo.22005854)
+![Rust](https://img.shields.io/badge/Rust-000000?style=flat&logo=rust&logoColor=white)
+![Go](https://img.shields.io/badge/Go-00ADD8?style=flat&logo=go&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)
 
-**Reference implementation of the ChaosSeal revocation and resynchronization protocol for LEO satellite constellations.**
+> **Reference Implementation for the IEEE Ad Hoc Networks Submission**  
+> **Authors:** Prathmesh Desai, Avinash Sastry  
 
-This monorepo implements the full experimental pipeline described in the IEEE Ad Hoc Networks submission: Rust protocol core → Go network simulator → structured JSON results → Python paper figures + Next.js live operator console.
+## Abstract
 
-**Honesty-first policy:** every number in the paper must trace back to `/results/*.json` produced by a real run. No mocked values, no hand-typed statistics.
+Low Earth Orbit (LEO) satellite swarms require secure, high-bandwidth, and delay-tolerant communications, yet traditional Public Key Infrastructure (PKI) is poorly suited to this environment because of the high latency of long-fat-network (LFN) links and the prohibitive overhead of re-keying an entire swarm after a single node compromise. This paper proposes the Chaotic Exclusion Protocol (CEP), a dual-layer architecture that combines Broadcast Exclusion Encryption (BEE) for instant, sublinear-cost node revocation with a chaos-derived, hardware-portable key-rotation mechanism for the data-transmission layer. Rather than using a chaotic trajectory directly as an XOR keystream—a design repeatedly broken in prior chaos-cryptography literature via phase-space reconstruction attacks—CEP uses the chaotic pendulum purely as a deterministic entropy source for an HKDF-based key schedule feeding standard AES-256-CTR encryption. Cross-platform floating-point divergence is eliminated using fixed-point (Q32.32) arithmetic, and synchronization is verified with an exact HMAC commitment rather than a similarity threshold. We further replace the original SMTP-based store-and-forward design with the CCSDS Bundle Protocol (BPv7) and BPSec, aligning the delay-tolerant transport layer with current space-networking standards. We present the protocol architecture, an explicit threat model, formal confidentiality and entropy arguments—including a concrete, measured epoch-duration bound of 840.6 s derived from the pendulum's estimated dominant Lyapunov exponent—and a multi-seed simulation evaluation showing that CEP delivers higher goodput than a BPSec baseline when fewer than approximately 6% of the swarm is simultaneously revoked, with a predictable, low-variance crossover past which BPSec's fixed per-bundle overhead becomes more efficient than CEP's revocation-amortized cost; an event-driven burst-then-recover model confirms the amortized goodput prediction holds on time-average.
 
----
-
-## Table of Contents
-
-1. [Architecture Overview](#architecture-overview)
-2. [Pipeline](#pipeline)
-3. [Component Reference](#component-reference)
-   - [core (Rust)](#core-rust)
-   - [netsim (Go)](#netsim-go)
-   - [analysis (Python)](#analysis-python)
-   - [dashboard (Next.js)](#dashboard-nextjs)
-4. [Build & Test](#build--test)
-5. [Reproducibility](#reproducibility)
-6. [License](#license)
+### Highlights
+- Proposes a dual-layer protocol combining Broadcast Exclusion Encryption with a chaos-derived key schedule for LEO satellite swarm security.
+- Replaces direct chaotic-XOR keystream generation with an HKDF-to-AES-256-CTR construction, avoiding known phase-space reconstruction attacks on chaos ciphers.
+- Resolves cross-processor floating-point divergence using Q32.32 fixed-point arithmetic and an exact HMAC-based synchronization check.
+- Aligns the delay-tolerant transport layer with the CCSDS Bundle Protocol (BPv7) and BPSec rather than a legacy email-based transport.
+- Identifies an empirical crossover: CEP outperforms a BPSec baseline in goodput below approximately 6% simultaneous revocation, with a measurable, predictable degradation point beyond it.
 
 ---
 
-## Architecture Overview
+## Citation
 
-```mermaid
-flowchart TB
-    subgraph CS["ChaosSeal Monorepo"]
-        CORE["core (Rust) - Protocol engine, KATs, C ABI"]
-        NETSIM["netsim (Go) - Simulation driver, TLS 1.3 & BPSec baselines"]
-        ANALYSIS["analysis (Python) - Paper figures, stats.py"]
-        DASH["dashboard (Next.js) - Live operator console"]
-    end
+If you build on this work or use the reference implementation, please cite the paper:
 
-    CORE -->|"libchaosseal_core.so/.a"| NETSIM
-    NETSIM -->|"goroutines + cgo/FFI"| RESULTS["(/results/*.json)"]
-    RESULTS --> ANALYSIS
-    RESULTS --> DASH
-    NETSIM -->|"real network events"| NET["Real network"]
+```bibtex
+@article{desai2026dynamic,
+  title={Dynamic Node Revocation and Chaos-Derived Key Rotation in LEO Satellite Swarms: A Dual-Layer Cryptographic Protocol},
+  author={Desai, Prathmesh and Sastry, Avinash},
+  journal={IEEE Ad Hoc Networks (Submitted)},
+  year={2026}
+}
 ```
 
 ---
 
-## Pipeline
+## Architecture & Tech Stack
 
-```mermaid
-flowchart LR
-    A["Rust core – crypto + kinematics + BEE"] --> B["Go netsim – LEO links + satellite goroutines"]
-    B -->|"drives Rust core via CLI/cgo"| C["/results/<run_id>.json"]
-    C --> D["Python analysis – figures, stats.py"]
-    C --> E["Next.js dashboard – npm run dev, read-only"]
-```
+This repository implements the full experimental pipeline across a polyglot architecture:
 
-### Data Flow Contract
-
-1. **Rust → Go:** Go calls the Rust CLI (`chaosseal lyapunov ...`, `chaosseal beesize ...`) or links against `libchaosseal_core`. The Rust side emits JSON to stdout; Go parses it.
-2. **Go → results:** Every simulation run writes exactly one JSON file to `/results`. The schema is documented in `netsim/README.md`.
-3. **results → Python:** `analysis/` scripts read `/results/*.json` only. They never recompute protocol logic.
-4. **results → dashboard:** The dashboard reads the same JSON files via a read-only API route or static serving. It must not reimplement protocol or simulation logic.
+1. **Protocol Core (Rust)**: Located in `core/`. This handles all protocol logic. We use deterministic Q32.32 fixed-point Runge-Kutta solvers alongside vetted `hkdf` and `aes` crates. This ensures absolute memory safety, performance, and cross-platform bit-exact execution (critical for eliminating floating-point divergence in Lyapunov estimation).
+2. **Network Simulator (Go)**: Located in `netsim/`. This Go harness simulates the LEO swarm, modeling intermittent visibility windows, elevation-dependent link latency, and Gilbert-Elliott loss bursts. It also includes the standard BPv7/BPSec and TLS 1.3 baselines used in the paper for comparison.
 
 ---
 
-## Component Reference
+## Build and Installation
 
-### core (Rust)
+For researchers replicating the results, the friction to build the environment is kept intentionally low for standard Linux and WSL2 environments.
 
-**Path:** `core/`
+**Prerequisites:**
+- Rust $\geq$ 1.75
+- Go $\geq$ 1.22
+- Python $\geq$ 3.10 (for plotting graphs)
 
-The source of truth for all protocol logic.
-
-| Module | Purpose |
-|--------|---------|
-| `fixed` | Q32.32 fixed-point arithmetic (no floats in hot path) |
-| `kinematics` | Multi-pendulum ODE system + RK4 integrator, fixed-point throughout |
-| `lyapunov` | Benettin algorithm for Lyapunov exponent estimator (`λ1`) |
-| `crypto` | HKDF → AES-256-CTR (vetted crates), HMAC-SHA256 commitment |
-| `bee` | Subset-difference key tree, covering-set algorithm, ciphertext serialization |
-| `bindings` | C ABI via `cbindgen` for cgo consumption |
-| `bin` | CLI (`clap`) that emits JSON |
-
-**Dependencies (vetted crates, no hand-rolled crypto):**
-- `aes`, `ctr` — AES-256-CTR
-- `hkdf` — RFC 5869 key derivation
-- `hmac`, `sha2` — HMAC-SHA256
-- `cbindgen` — C header generation
-- `clap` — CLI
-
-**Known-Answer Tests (KATs):**
-- `tests/kat.rs` — AES-CTR encrypt/decrypt round-trip, HMAC-SHA256 against RFC 4231 vectors
-- In-module tests — determinism (same seed → bit-exact output across runs)
-
-**Build:**
-```bash
-cargo build --manifest-path core/Cargo.toml
-cargo test --manifest-path core/Cargo.toml
-```
-
-**C ABI header:** generated at build time to `target/.../chaosseal_core.h`.
-
----
-
-### netsim (Go)
-
-**Path:** `netsim/`
-
-Network simulation orchestration. Drives N satellite goroutines + 1 ground station goroutine, each calling into the Rust core.
-
-| Feature | Implementation |
-|---------|----------------|
-| LEO link model | Visibility windows, elevation-dependent latency, Gilbert-Elliott loss bursts |
-| TLS 1.3 baseline | Real `crypto/tls` handshake over simulated link |
-| BPv7 / BPSec baseline | CBOR-encoded bundles (RFC 9171) with BIB (HMAC-SHA256) and BCB (AES-256-GCM) canonical blocks (RFC 9172) |
-| Results emission | One JSON file per run to `/results` |
-
-**Design decisions documented in `netsim/README.md`:**
-- Why BPSec was implemented against the RFCs directly (no viable Go ≥ 1.22 dependency at time of writing).
-- RNG seed logging for reproducibility.
-
----
-
-### analysis (Python)
-
-**Path:** `analysis/`
-
-Reads `/results/*.json` only. Never recomputes protocol logic.
-
-| Script | Purpose |
-|--------|---------|
-| `stats.py` | Prints actual numbers (mean / median / p95) quoted in the paper |
-| `figures.py` | Generates the 3 paper figures via matplotlib |
-
-**Figures:**
-1. BEE ciphertext size vs |R|
-2. Resynchronization latency distribution
-3. Raw Throughput comparison (ChaosSeal vs TLS 1.3 vs BPSec)
-4. Effective Goodput comparison (ChaosSeal vs TLS 1.3 vs BPSec)
-5. Goodput Degradation vs |R|
-
-<img src="./docs/figures/throughput.pdf" alt="Raw Throughput" width="400"/>
-<img src="./docs/figures/goodput.pdf" alt="Effective Goodput" width="400"/>
-<img src="./docs/figures/goodput_vs_r.pdf" alt="Goodput Degradation vs R" width="400"/>
-<img src="./docs/figures/bee_size_vs_r.pdf" alt="BEE Size vs R" width="400"/>
-<img src="./docs/figures/resync_latency.pdf" alt="Resync Latency" width="400"/>
-
-**Style:** serif fonts, no gridlines by default, vector PDF output into `analysis/figures/`.
-
-**Run:**
-```bash
-cd analysis
-make figures
-make stats
-```
-
-`figures.py` imports its loading and metric helpers from `stats.py`, so both
-read the exact same JSON fields. Figure and PDF artifacts are gitignored
-runtime outputs; only the scripts are versioned.
-
----
-
-### dashboard (Next.js)
-
-**Path:** `dashboard/`
-
-Live operator console. **Not the source of truth for paper numbers.**
-
-| View | Description |
-|------|-------------|
-| Live swarm state | Real-time satellite positions and link status during a run |
-| Revocation events | Stream of BEE revocation events as they happen |
-| Replay | Step-through view for completed runs |
-| Comparison | CEP vs TLS vs BPSec for quick eyeballing |
-
-**Constraint:** reads the same `/results/*.json` files. Must not reimplement protocol or simulation logic.
-
-**Run:**
-```bash
-cd dashboard
-npm install
-npm run dev
-```
-
----
-
-## Build & Test
-
-### Prerequisites
-
-- Rust ≥ 1.75 (for `clap` derive and edition 2021)
-- Go ≥ 1.22
-- Python ≥ 3.10 (matplotlib, numpy)
-- Node.js ≥ 18 (Next.js)
-
-### Rust core
+**Compilation:**
+To build the release binaries, execute the following from the root directory:
 
 ```bash
-cd core
-cargo build
-cargo test
+# Build the Rust cryptographic core
+cargo build --release --manifest-path core/Cargo.toml
+
+# Build the Go network simulator
+go build -o chaoseal-sim ./netsim
 ```
 
-Expected: 19 tests pass (KATs + determinism + scaling).
+*(Note: Ensure the Rust shared library bindings are available to the Go environment if using CGO)*.
 
-### Go netsim (smoke test)
+---
+
+## Reproducing the Paper's Evaluation
+
+The evaluation data and figures in the draft can be exactly reproduced using the CLI. The parameters used in our paper map directly to these commands. 
+
+### Figure 5 & Table 2: Goodput Crossover
+Run a full sweep of $R \in \{1, 2, 4, 8, 16, 32, 64, 128, 256, 512\}$ with $N=1024$ nodes over a 1200s epoch across 5 RNG seeds:
 
 ```bash
-cd netsim
-go mod init github.com/chaosseal/netsim  # if first run
-go test ./...
+./chaoseal-sim --mode sweep --N 1024 --epoch 1200 --seeds 5
 ```
 
-### Python analysis
+### Figure 4: Latency Distribution
+Trigger the HMAC mismatch and output the latency logs for the BEE Correction Vector propagation:
 
 ```bash
-cd analysis
-pip install matplotlib numpy
-make figures
+./chaoseal-sim --mode latency-dist --trigger-hmac-mismatch true
 ```
 
-### Next.js dashboard
+### Figure 7: Burst-then-Recover
+Run the event-driven instantaneous goodput model for $\vert{}R\vert{}=512$:
 
 ```bash
-cd dashboard
-npm install
-npm run dev
+./chaoseal-sim --mode burst-recover --R 512
 ```
 
 ---
 
-## Reproducibility
+## Repository Navigation
 
-Every `/results/*.json` file records:
+For reviewers and researchers, the repository is structured to transparently map to claims made in the paper:
 
-| Field | Description |
-|-------|-------------|
-| `git_commit` | Full commit hash at time of run |
-| `rng_seed` | 64-bit seed used for the simulation |
-| `parameters` | Complete parameter set (pendulum count, masses, damping, BEE `N`/`R`, loss model coefficients, etc.) |
-
-To reproduce a specific run:
-
-```bash
-git checkout <commit_hash>
-cd netsim
-go run . --seed <rng_seed> --config <parameter_json>
+```
+.
+├── core/                        # Protocol Core (Rust)
+│   ├── src/crypto/
+│   │   ├── hmac_sha256.rs       # 📍 Exact-match HMAC commitment logic
+│   │   └── aes_ctr.rs           # 📍 HKDF key derivation & AES-CTR
+│   ├── src/bee/                 # Subset-difference key tree & covering set
+│   └── src/kinematics/          # Q32.32 fixed-point ODE solver
+├── netsim/                      # Network Simulator (Go)
+│   └── main.go                  # CLI entry point for the simulation harness
+├── analysis/                    # Python scripts for figures and stats
+└── results/                     # Raw JSON output from simulations
 ```
 
-The Python `stats.py` script reads the same JSON and reports the exact numbers quoted in the paper. **Never hand-type a number into the paper that isn't traceable to `stats.py` output.**
+### Key Cryptographic Mechanisms
+
+- **Exact-Match HMAC Commitment:** The logic for verifying the chaotic state using an exact HMAC check (resolving the similarity threshold issue of prior chaotic protocols) is located in [`core/src/crypto/hmac_sha256.rs`](file:///root/workspace/workspace/03-Code/Projects/Legacy/ChaosSeal/core/src/crypto/hmac_sha256.rs).
+- **HKDF Key Derivation:** The secure generation of the AES-CTR keystream via the HKDF construction (avoiding phase-space reconstruction) is implemented in [`core/src/crypto/aes_ctr.rs`](file:///root/workspace/workspace/03-Code/Projects/Legacy/ChaosSeal/core/src/crypto/aes_ctr.rs).
 
 ---
 
-## Threat Model
-
-ChaosSeal assumes a Dolev-Yao attacker capable of intercepting, replaying, and dropping packets. Key architectural guarantees:
-- **Revoked nodes** cannot collude to recover the current epoch's symmetric key (Subset-Difference covering set property).
-- **Collusion Resistance at Scale:** It is important to note that as the number of revoked receivers $|R|$ grows large, the system's efficiency and goodput degrades predictably, but the cryptographic collusion-resistance properties of the architecture remain fully intact and unconditionally hold at any $|R|$.
-- **Active attackers** cannot desynchronize the Lyapunov state between the sender and valid receivers without possessing the key (HMAC binding).
-
----
+<!-- Hidden Paper Figures for Internal Reference -->
+<!-- 
+<img src="./analysis/figures/throughput.pdf" alt="Raw Throughput" width="400"/>
+<img src="./analysis/figures/goodput.pdf" alt="Effective Goodput" width="400"/>
+<img src="./analysis/figures/goodput_vs_r.pdf" alt="Goodput Degradation vs R" width="400"/>
+<img src="./analysis/figures/bee_size_vs_r.pdf" alt="BEE Size vs R" width="400"/>
+<img src="./analysis/figures/resync_latency.pdf" alt="Resync Latency" width="400"/>
+-->
 
 ## License
 
-MIT — permissive academic reference implementation. Chosen because:
-- It imposes no restrictions on downstream use (commercial or academic).
-- It is the standard license for protocol reference implementations in the systems/networking community.
-- Apache-2.0 is a reasonable alternative; we chose MIT for brevity and broad compatibility.
-
-If you build on this work, please cite the paper and consider contributing improvements back.
-
----
-
-## Status
-
-| Component | Status |
-|-----------|--------|
-| core (Rust) | Compiling, 19/19 tests passing |
-| netsim (Go) | Implemented, tests passing (TLS 1.3 + BPSec baselines, JSON results) |
-| analysis (Python) | Implemented, `stats.py` + `figures.py` producing the 3 paper figures |
-| dashboard (Next.js) | Placeholder directories (last deliverable) |
-
-Deliverable order per project plan:
-1. Rust core with KATs passing ✅
-2. Go netsim + TLS 1.3 baseline + BPSec baseline ✅
-3. Python analysis producing 3 paper figures ✅
-4. Next.js dashboard
+This reference implementation is licensed under the MIT License.
