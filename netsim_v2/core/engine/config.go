@@ -6,16 +6,52 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/chaosseal/netsim/core/kinematics"
 )
+
+// intList implements flag.Value for a comma-separated list of ints.
+type intList struct {
+	c *[]int
+}
+
+func (il *intList) String() string {
+	if il.c == nil {
+		return ""
+	}
+	parts := make([]string, len(*il.c))
+	for i, v := range *il.c {
+		parts[i] = strconv.Itoa(v)
+	}
+	return strings.Join(parts, ",")
+}
+
+func (il *intList) Set(s string) error {
+	for _, p := range strings.Split(s, ",") {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		v, err := strconv.Atoi(p)
+		if err != nil {
+			return err
+		}
+		*il.c = append(*il.c, v)
+	}
+	return nil
+}
 
 // Config captures the full parameter set of a simulation run. Every field is
 // recorded in the results JSON so a run can be reproduced bit-for-bit.
 type Config struct {
 	RunID       string   `json:"run_id"`
 	Seed        int64    `json:"rng_seed"`
+	CorruptionTest bool   `json:"corruption_test,omitempty"`
+	CorruptBitPositions []int `json:"corrupt_bit_positions,omitempty"`
+	PacketsPerEpoch     uint32 `json:"packets_per_epoch,omitempty"`
+	MaxCorruptionEpochs int    `json:"max_corruption_epochs,omitempty"`
 	Satellites  int      `json:"satellites"`
 	GroundLat   float64  `json:"ground_lat_deg"`
 	GroundLon   float64  `json:"ground_lon_deg"`
@@ -25,6 +61,9 @@ type Config struct {
 	Baselines   []string `json:"baselines"`
 	BEE_N           int      `json:"bee_n"`
 	BEE_R           int      `json:"bee_r"`
+	PayloadBytes    int      `json:"payload_bytes"`
+	LossRateOverride float64 `json:"loss_rate_override,omitempty"` // 0 = use Gilbert-Elliott
+	CommitIntervalN int      `json:"commit_interval_n"` // HMAC verify every N packets (0 = every packet)
 	RustCLI         string   `json:"rust_cli"`
 	ResultsDir      string   `json:"results_dir"`
 	DownlinkBps     float64  `json:"downlink_bandwidth_bps"`
@@ -47,6 +86,8 @@ func DefaultConfig() *Config {
 		Baselines:   []string{"chaosseal", "tls13", "bpsec"},
 		BEE_N:         1024,
 		BEE_R:         8,
+		PayloadBytes:  1024,
+		CommitIntervalN: 0, // 0 = verify every packet
 		RustCLI:       "cargo run --quiet --manifest-path core/Cargo.toml --",
 		ResultsDir:    "results",
 		DownlinkBps:   50e6, // 50 Mbps downlink, Starlink-class
@@ -66,8 +107,9 @@ func ParseConfig(args []string) (*Config, error) {
 	cfg := DefaultConfig()
 
 	var (
-		configPath string
-		baselines  string
+		configPath     string
+		baselines      string
+		packetsPerEpoch int
 	)
 	fs := flag.NewFlagSet("netsim", flag.ContinueOnError)
 	fs.StringVar(&configPath, "config", "", "path to a JSON config file (optional)")
@@ -82,11 +124,19 @@ func ParseConfig(args []string) (*Config, error) {
 	fs.StringVar(&baselines, "baselines", strings.Join(cfg.Baselines, ","), "comma-separated baselines to run")
 	fs.IntVar(&cfg.BEE_N, "bee-n", cfg.BEE_N, "BEE key-tree size N")
 	fs.IntVar(&cfg.BEE_R, "bee-r", cfg.BEE_R, "number of revoked receivers R")
+	fs.IntVar(&cfg.PayloadBytes, "payload-bytes", cfg.PayloadBytes, "application payload size in bytes")
+	fs.Float64Var(&cfg.LossRateOverride, "loss-rate", cfg.LossRateOverride, "fixed packet loss rate (0 = use Gilbert-Elliott)")
+	fs.IntVar(&cfg.CommitIntervalN, "commit-interval", cfg.CommitIntervalN, "HMAC verify every N packets (0 = every packet)")
+	fs.BoolVar(&cfg.CorruptionTest, "corruption-test", false, "run the single-bit corruption detection experiment (no network sweep)")
+	fs.Var(&intList{c: &cfg.CorruptBitPositions}, "corrupt-bit-positions", "comma-separated bit positions to corrupt (default: all 0..255)")
+	fs.IntVar(&packetsPerEpoch, "packets-per-epoch", 64, "packets to check per epoch in corruption test")
+	fs.IntVar(&cfg.MaxCorruptionEpochs, "max-corruption-epochs", 256, "give-up epoch threshold in corruption test")
 	fs.StringVar(&cfg.RustCLI, "rust-cli", cfg.RustCLI, "command used to invoke the Rust core CLI")
 	fs.StringVar(&cfg.ResultsDir, "results-dir", cfg.ResultsDir, "directory for result JSON files")
 	if err := fs.Parse(args); err != nil {
 		return nil, err
 	}
+	cfg.PacketsPerEpoch = uint32(packetsPerEpoch)
 
 	if configPath != "" {
 		data, err := os.ReadFile(configPath)
@@ -133,9 +183,9 @@ func (c *Config) Validate() error {
 	}
 	for _, b := range c.Baselines {
 		switch b {
-		case "chaosseal", "tls13", "bpsec":
+		case "chaosseal", "counter", "tls13", "bpsec":
 		default:
-			return fmt.Errorf("unknown baseline %q (want chaosseal, tls13, or bpsec)", b)
+			return fmt.Errorf("unknown baseline %q (want chaosseal, counter, tls13, or bpsec)", b)
 		}
 	}
 	return nil
