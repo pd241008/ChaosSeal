@@ -11,8 +11,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/chaosseal/netsim/core/engine"
@@ -36,6 +38,13 @@ func run(args []string) error {
 		return err
 	}
 
+	// Corruption-detection experiment: inject single-bit flips and measure how
+	// many epochs pass before each key-derivation mode is detected by HMAC
+	// verification failure. Not a network sweep — a core-crypto benchmark.
+	if cfg.CorruptionTest {
+		return runCorruptionTest(cfg, resultsDir)
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
@@ -57,5 +66,60 @@ func run(args []string) error {
 		fmt.Printf("baseline %s: ok\n", name)
 	}
 	fmt.Printf("results -> %s\n", path)
+	return nil
+}
+
+func runCorruptionTest(cfg *engine.Config, resultsDir string) error {
+	runner := engine.CorruptionRunner{}
+	samples := runner.RunAll(cfg.CorruptBitPositions, cfg.PacketsPerEpoch, cfg.MaxCorruptionEpochs)
+
+	// Aggregate stats
+	var counterSum int
+	counterMax := 0
+	var chaosSum, chaosMax float64
+	keyDiffer := 0
+	for _, s := range samples {
+		counterSum += s.CounterEpochsUntilDetect
+		if s.CounterEpochsUntilDetect > counterMax {
+			counterMax = s.CounterEpochsUntilDetect
+		}
+		chaosSum += s.ChaosLyapunovTimescales
+		if s.ChaosLyapunovTimescales > chaosMax {
+			chaosMax = s.ChaosLyapunovTimescales
+		}
+		if s.ChaosKeyDiffers == 1 {
+			keyDiffer++
+		}
+	}
+	n := len(samples)
+	doc := map[string]interface{}{
+		"experiment":        "single-bit-corruption-detection",
+		"run_id":            cfg.RunID,
+		"n_bit_positions":   n,
+		"packets_per_epoch": cfg.PacketsPerEpoch,
+		"max_epochs":        cfg.MaxCorruptionEpochs,
+		"haystack_bytes":    32,
+		"summary": map[string]interface{}{
+			"counter_mean_epochs_to_detect":  float64(counterSum) / float64(n),
+			"counter_max_epochs_to_detect":   counterMax,
+			"chaos_mean_divergence_lyap_timescales": chaosSum / float64(n),
+			"chaos_max_divergence_lyap_timescales":  chaosMax,
+			"chaos_key_differs_fraction":            float64(keyDiffer) / float64(n),
+		},
+		"per_bit": samples,
+	}
+
+	if err := os.MkdirAll(resultsDir, 0o755); err != nil {
+		return err
+	}
+	data, err := json.MarshalIndent(doc, "", "  ")
+	if err != nil {
+		return err
+	}
+	path := filepath.Join(resultsDir, cfg.RunID+".json")
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		return err
+	}
+	fmt.Printf("corruption-test: ran %d bit positions -> %s\n", n, path)
 	return nil
 }

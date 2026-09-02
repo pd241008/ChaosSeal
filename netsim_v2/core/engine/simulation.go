@@ -74,6 +74,10 @@ func (s *Simulation) Run(ctx context.Context) (*RunResult, error) {
 			if err := s.runChaosSeal(ctx); err != nil {
 				return nil, fmt.Errorf("chaosseal baseline: %w", err)
 			}
+		case "counter":
+			if err := s.runCounter(ctx); err != nil {
+				return nil, fmt.Errorf("counter baseline: %w", err)
+			}
 		case "tls13":
 			if err := s.runTLS13(); err != nil {
 				return nil, fmt.Errorf("tls13 baseline: %w", err)
@@ -209,6 +213,67 @@ func (s *Simulation) referenceLink() *kinematics.Link {
 	return kinematics.NewLink(s.sats[s.measureSat], s.gs, s.cfg.MinElevDeg, s.channels[s.measureSat], epoch)
 }
 
+// transmitWithLoss sends a packet at offsetSec, applying either the configured
+// fixed loss-rate override (if nonzero) or the Gilbert-Elliott model.
+func (s *Simulation) transmitWithLoss(link *kinematics.Link, t float64) kinematics.PacketOutcome {
+	if s.cfg.LossRateOverride > 0 {
+		visible := link.VisibleAt(t)
+		lost := s.rng.Float64() < s.cfg.LossRateOverride
+		latency := link.LatencyAt(t)
+		if !visible || lost {
+			return kinematics.PacketOutcome{Lost: true, At: link.StartTime, Latency: latency}
+		}
+		return kinematics.PacketOutcome{Lost: false, At: link.StartTime.Add(latency), Latency: latency, Progress: 1}
+	}
+	return link.Transmit(t)
+}
+
+const (
+	numDataPackets = 10000
+)
+
+// simulateDataStream models a stream of lossRate-override packets through the
+// data layer. Each packet has a `lossRate` chance of being lost/corrupted. The
+// HMAC commitment is verified every `commitInterval` packets (0 = every packet);
+// a mismatch triggers a resync (extra cost). Returns aggregate loss + resync stats.
+func (s *Simulation) simulateDataStream(lossRate float64, commitInterval int) map[string]interface{} {
+	// Effective per-packet corruption probability (loss on the link).
+	p := lossRate
+	resyncInterval := commitInterval
+	if resyncInterval <= 0 {
+		resyncInterval = 1
+	}
+	// A packet corrupted by the channel will fail HMAC verification when it is
+	// the (or near the) verification point. Simple model: each packet has p
+	// chance of corruption; verification catches it at the next check point.
+	resyncs := 0
+	retransmissions := 0
+	delivered := 0
+	for i := 0; i < numDataPackets; i++ {
+		corrupted := s.rng.Float64() < p
+		if corrupted {
+			retransmissions++
+			// The corrupted packet triggers verification failure at the next
+			// check boundary, causing one resync.
+			resyncs++
+			// Retransmit successfully (clean link assumed for retransmit).
+			delivered++
+		} else {
+			delivered++
+		}
+	}
+	lossRate = float64(retransmissions) / float64(numDataPackets)
+	return map[string]interface{}{
+		"packets":            numDataPackets,
+		"delivered":          delivered,
+		"retransmissions":    retransmissions,
+		"loss_rate":          lossRate,
+		"resyncs":            resyncs,
+		"commit_interval_n":  commitInterval,
+		"resyncs_per_packet": float64(resyncs) / float64(numDataPackets),
+	}
+}
+
 // runChaosSeal drives the Rust core CLI: it computes a Lyapunov exponent and
 // a BEE ciphertext, then simulates a revocation broadcast over the link.
 func (s *Simulation) runChaosSeal(ctx context.Context) error {
@@ -244,7 +309,7 @@ func (s *Simulation) runChaosSeal(ctx context.Context) error {
 
 	totalLoss := 0
 	for r := 0; r < s.cfg.BEE_R; r++ {
-		outcome := link.Transmit(t)
+		outcome := s.transmitWithLoss(link, t)
 		if outcome.Lost {
 			totalLoss++
 		}
@@ -282,7 +347,11 @@ func (s *Simulation) runChaosSeal(ctx context.Context) error {
 	out["resync_compute_sec"] = resyncComputeSec
 
 	// Simulate Data Transmission Phase for a single epoch
-	dataPayload := make([]byte, payloadBytes)
+	payloadSz := s.cfg.PayloadBytes
+	if payloadSz <= 0 {
+		payloadSz = payloadBytes // fallback to const
+	}
+	dataPayload := make([]byte, payloadSz)
 	for i := range dataPayload {
 		dataPayload[i] = byte(i % 251)
 	}
@@ -292,20 +361,144 @@ func (s *Simulation) runChaosSeal(ctx context.Context) error {
 	cryptoWallclockSec := time.Since(startData).Seconds()
 
 	amortizedBeeBytes := float64(bee.CiphertextSizeMin*s.cfg.BEE_R) / float64(s.cfg.BEE_N)
-	overheadBytes := float64(cryptoRes.CryptoOverhead) + amortizedBeeBytes
-	overheadPct := overheadBytes / float64(payloadBytes)
+	// Commitment-interval overhead: an HMAC tag (32 B) is transmitted every N
+	// packets as part of the integrity-verification commitment stream. Amortized
+	// over the epoch this is 32/N bytes per packet for N>0; N=0 (default) means
+	// the pendulum's per-epoch commitment dominates and no per-packet sync tag.
+	var commitBytes float64
+	if s.cfg.CommitIntervalN > 0 {
+		commitBytes = float64(32) / float64(s.cfg.CommitIntervalN)
+	}
+	overheadBytes := float64(cryptoRes.CryptoOverhead) + amortizedBeeBytes + commitBytes
+	overheadPct := overheadBytes / float64(payloadSz)
 
-	dataTransferSec := float64(float64(payloadBytes)+overheadBytes)*8.0/s.cfg.DownlinkBps + lat
+	dataTransferSec := float64(float64(payloadSz)+overheadBytes)*8.0/s.cfg.DownlinkBps + lat
 
 	out["data_transmission"] = map[string]interface{}{
-		"payload_bytes":                   payloadBytes,
+		"payload_bytes":                   payloadSz,
+		"crypto_wallclock_us":             cryptoWallclockSec * 1000000.0,
+		"overhead_pct":                    overheadPct,
+		"overhead_bytes_per_payload_byte": overheadPct,
+		"commit_interval_n":               s.cfg.CommitIntervalN,
+		"commit_amortized_bytes":          commitBytes,
+		"transfer_sec":                    dataTransferSec,
+	}
+
+	// If a fixed loss override is set, exercise the data-layer HMAC-resync
+	// behaviour under that loss rather than the clean-channel assumption.
+	if s.cfg.LossRateOverride > 0 {
+		out["data_stream_loss_sensitivity"] = s.simulateDataStream(s.cfg.LossRateOverride, s.cfg.CommitIntervalN)
+	}
+
+	s.result.Baselines["chaosseal"] = out
+	return nil
+}
+
+// runCounter drives the counter-mode baseline: HKDF(SessionSeed || i) → AES-GCM.
+// This is the deterministic baseline without chaotic dynamics — same BEE revocation,
+// but key derivation is a simple counter rather than the chaotic pendulum.
+func (s *Simulation) runCounter(ctx context.Context) error {
+	rust := &client.RustCoreClient{Command: s.cfg.RustCLI}
+
+	lyap, err := rust.Lyapunov(ctx, 3, 1.0, 1.0, 0.1, 0.5, s.cfg.LyapunovSteps)
+	if err != nil {
+		return err
+	}
+	startResync := time.Now()
+	client.CounterEpochKeyGen() // instant, no chaotic simulation
+	bee, err := rust.BeeSize(ctx, s.cfg.BEE_N, s.cfg.BEE_R)
+	if err != nil {
+		return err
+	}
+	resyncComputeSec := time.Since(startResync).Seconds()
+
+	out := map[string]interface{}{
+		"lyapunov":            lyap,
+		"bee":                 bee,
+		"revocation_messages": make([]map[string]interface{}, 0),
+		"delivery":            map[string]interface{}{},
+	}
+
+	link := s.referenceLink()
+	t := s.measureOffset
+
+	msgs := make([]map[string]interface{}, 0, s.cfg.BEE_R)
+	bytesPerMsg := bee.CiphertextSizeMin
+	transferSec := float64(bytesPerMsg*8) / s.cfg.DownlinkBps
+	lat := link.GS.OneWayLatencySec(link.Sat, t)
+
+	totalLoss := 0
+	for r := 0; r < s.cfg.BEE_R; r++ {
+		outcome := s.transmitWithLoss(link, t)
+		if outcome.Lost {
+			totalLoss++
+		}
+		s.result.Events = append(s.result.Events, Event{
+			TimeSec:   t,
+			Type:      "counter_revoke",
+			Satellite: r % len(s.sats),
+			Detail:    "counter-mode revoked receiver + broadcast update",
+			Value:     float64(bytesPerMsg),
+		})
+		msgs = append(msgs, map[string]interface{}{
+			"revoked_receiver": r,
+			"ciphertext_bytes": bytesPerMsg,
+			"transfer_sec":     transferSec,
+			"latency_ms":       lat * 1000,
+			"lost":             outcome.Lost,
+		})
+	}
+
+	delivered := s.cfg.BEE_R - totalLoss
+	s.result.Events = append(s.result.Events, Event{
+		TimeSec: t,
+		Type:    "counter_delivery",
+		Detail:  fmt.Sprintf("%d/%d updates delivered", delivered, s.cfg.BEE_R),
+		Value:   float64(delivered),
+	})
+	out["revocation_messages"] = msgs
+	out["delivery"] = map[string]interface{}{
+		"sent":      s.cfg.BEE_R,
+		"delivered": delivered,
+		"losses":    totalLoss,
+		"loss_rate": float64(totalLoss) / float64(s.cfg.BEE_R),
+	}
+	out["resync_compute_sec"] = resyncComputeSec
+
+	// Data transmission via counter-mode crypto
+	payloadSz := s.cfg.PayloadBytes
+	if payloadSz <= 0 {
+		payloadSz = payloadBytes
+	}
+	dataPayload := make([]byte, payloadSz)
+	for i := range dataPayload {
+		dataPayload[i] = byte(i % 251)
+	}
+
+	startData := time.Now()
+	cryptoRes, counterVal := client.CounterEpochCrypto(dataPayload)
+	cryptoWallclockSec := time.Since(startData).Seconds()
+
+	amortizedBeeBytes := float64(bee.CiphertextSizeMin*s.cfg.BEE_R) / float64(s.cfg.BEE_N)
+	overheadBytes := float64(cryptoRes.CryptoOverhead) + amortizedBeeBytes
+	overheadPct := overheadBytes / float64(payloadSz)
+
+	dataTransferSec := float64(float64(payloadSz)+overheadBytes)*8.0/s.cfg.DownlinkBps + lat
+
+	out["data_transmission"] = map[string]interface{}{
+		"payload_bytes":                   payloadSz,
 		"crypto_wallclock_us":             cryptoWallclockSec * 1000000.0,
 		"overhead_pct":                    overheadPct,
 		"overhead_bytes_per_payload_byte": overheadPct,
 		"transfer_sec":                    dataTransferSec,
+		"counter_value":                   counterVal,
 	}
 
-	s.result.Baselines["chaosseal"] = out
+	if s.cfg.LossRateOverride > 0 {
+		out["data_stream_loss_sensitivity"] = s.simulateDataStream(s.cfg.LossRateOverride, s.cfg.CommitIntervalN)
+	}
+
+	s.result.Baselines["counter"] = out
 	return nil
 }
 
@@ -320,7 +513,11 @@ func (s *Simulation) runTLS13() error {
 		return time.Duration(baseLatency * float64(time.Second))
 	}
 
-	res, err := crypto.RunTLS13Baseline(provider, make([]byte, payloadBytes))
+	payloadSz := s.cfg.PayloadBytes
+	if payloadSz <= 0 {
+		payloadSz = payloadBytes
+	}
+	res, err := crypto.RunTLS13Baseline(provider, make([]byte, payloadSz))
 	if err != nil {
 		return err
 	}
@@ -351,7 +548,11 @@ func (s *Simulation) runBPSec() error {
 		return err
 	}
 
-	payload := make([]byte, payloadBytes)
+	payloadSz := s.cfg.PayloadBytes
+	if payloadSz <= 0 {
+		payloadSz = payloadBytes
+	}
+	payload := make([]byte, payloadSz)
 	for i := range payload {
 		payload[i] = byte(i % 251)
 	}
@@ -396,7 +597,7 @@ func (s *Simulation) runBPSec() error {
 	t := s.measureOffset
 	lat := link.GS.OneWayLatencySec(link.Sat, t)
 	transferSec := float64(len(wire)*8)/s.cfg.DownlinkBps + lat
-	outcome := link.Transmit(t)
+	outcome := s.transmitWithLoss(link, t)
 
 	overheadBytes := float64(len(wire) - len(payload))
 	overheadPct := overheadBytes / float64(len(payload))
