@@ -94,6 +94,22 @@ Run the event-driven instantaneous goodput model for $\vert{}R\vert{}=512$:
 ./chaoseal-sim --mode burst-recover --R 512
 ```
 
+### Multi-Tier Strengthening (counter baseline, sweeps, corruption, proofs)
+
+The Tier 1–3 strengthening adds a counter-mode HKDF baseline, packet-size/loss/
+commitment-interval sweeps, single-bit corruption sensitivity, and formal
+end-to-end + dynamic-membership arguments. Results and how to reproduce them:
+
+- **Results**: `docs/v3_results.md` (measured tables + findings)
+- **Formal arguments**: `docs/end_to_end_security_and_membership.md`
+- **Raw data / figures**: `results_v3/` (JSON + CSVs + PDFs)
+- **Aggregation**: `analysis/v3_analysis.py`
+
+The headline measured finding is that the chaotic pendulum and the cheap HKDF
+counter baseline are *indistinguishable* in goodput (<1% everywhere) while the
+pendulum additionally provides dynamical entropy/forward-hiding that a counter
+cannot replicate — the pendulum costs no throughput for its security benefit.
+
 ---
 
 ## Repository Navigation
