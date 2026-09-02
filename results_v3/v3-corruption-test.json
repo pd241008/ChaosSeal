@@ -1,0 +1,2065 @@
+{
+  "experiment": "single-bit-corruption-detection",
+  "haystack_bytes": 32,
+  "max_epochs": 256,
+  "n_bit_positions": 256,
+  "packets_per_epoch": 8,
+  "per_bit": [
+    {
+      "bit_position": 0,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 5092,
+      "chaos_divergence_time_sec": 50.92,
+      "chaos_lyapunov_timescales": 75.40045681934804,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 1,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4405,
+      "chaos_divergence_time_sec": 44.050000000000004,
+      "chaos_lyapunov_timescales": 65.22761435373687,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 2,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4053,
+      "chaos_divergence_time_sec": 40.53,
+      "chaos_lyapunov_timescales": 60.01532825781964,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 3,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4053,
+      "chaos_divergence_time_sec": 40.53,
+      "chaos_lyapunov_timescales": 60.01532825781964,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 4,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4053,
+      "chaos_divergence_time_sec": 40.53,
+      "chaos_lyapunov_timescales": 60.01532825781964,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 5,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4053,
+      "chaos_divergence_time_sec": 40.53,
+      "chaos_lyapunov_timescales": 60.01532825781964,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 6,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 7,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 8,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 9,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 10,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 11,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 2986,
+      "chaos_divergence_time_sec": 29.86,
+      "chaos_lyapunov_timescales": 44.21558602957055,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 12,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 2986,
+      "chaos_divergence_time_sec": 29.86,
+      "chaos_lyapunov_timescales": 44.21558602957055,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 13,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 2986,
+      "chaos_divergence_time_sec": 29.86,
+      "chaos_lyapunov_timescales": 44.21558602957055,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 14,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 2282,
+      "chaos_divergence_time_sec": 22.82,
+      "chaos_lyapunov_timescales": 33.7910138377361,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 15,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1607,
+      "chaos_divergence_time_sec": 16.07,
+      "chaos_lyapunov_timescales": 23.795862943576648,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 16,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1607,
+      "chaos_divergence_time_sec": 16.07,
+      "chaos_lyapunov_timescales": 23.795862943576648,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 17,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1289,
+      "chaos_divergence_time_sec": 12.89,
+      "chaos_lyapunov_timescales": 19.087036300105975,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 18,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1289,
+      "chaos_divergence_time_sec": 12.89,
+      "chaos_lyapunov_timescales": 19.087036300105975,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 19,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1077,
+      "chaos_divergence_time_sec": 10.77,
+      "chaos_lyapunov_timescales": 15.947818537792191,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 20,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1077,
+      "chaos_divergence_time_sec": 10.77,
+      "chaos_lyapunov_timescales": 15.947818537792191,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 21,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1077,
+      "chaos_divergence_time_sec": 10.77,
+      "chaos_lyapunov_timescales": 15.947818537792191,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 22,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1077,
+      "chaos_divergence_time_sec": 10.77,
+      "chaos_lyapunov_timescales": 15.947818537792191,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 23,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 939,
+      "chaos_divergence_time_sec": 9.39,
+      "chaos_lyapunov_timescales": 13.90436546609737,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 24,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 822,
+      "chaos_divergence_time_sec": 8.22,
+      "chaos_lyapunov_timescales": 12.171872644443066,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 25,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 789,
+      "chaos_divergence_time_sec": 7.890000000000001,
+      "chaos_lyapunov_timescales": 11.683220822950826,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 26,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 375,
+      "chaos_divergence_time_sec": 3.75,
+      "chaos_lyapunov_timescales": 5.552861607866362,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 27,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 478,
+      "chaos_divergence_time_sec": 4.78,
+      "chaos_lyapunov_timescales": 7.078047596160323,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 28,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 477,
+      "chaos_divergence_time_sec": 4.7700000000000005,
+      "chaos_lyapunov_timescales": 7.063239965206013,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 29,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 476,
+      "chaos_divergence_time_sec": 4.76,
+      "chaos_lyapunov_timescales": 7.048432334251702,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 30,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 479,
+      "chaos_divergence_time_sec": 4.79,
+      "chaos_lyapunov_timescales": 7.092855227114633,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 31,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 24,
+      "chaos_divergence_time_sec": 0.24,
+      "chaos_lyapunov_timescales": 0.35538314290344714,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 32,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 33,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 34,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 35,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 36,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 37,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 38,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 39,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 40,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 41,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 42,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 43,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 44,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 45,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 46,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 47,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 48,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 49,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 50,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 51,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 52,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 53,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 54,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 55,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 56,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 57,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 58,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 59,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 60,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 61,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 62,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 63,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 64,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 5092,
+      "chaos_divergence_time_sec": 50.92,
+      "chaos_lyapunov_timescales": 75.40045681934804,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 65,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4405,
+      "chaos_divergence_time_sec": 44.050000000000004,
+      "chaos_lyapunov_timescales": 65.22761435373687,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 66,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4053,
+      "chaos_divergence_time_sec": 40.53,
+      "chaos_lyapunov_timescales": 60.01532825781964,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 67,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4053,
+      "chaos_divergence_time_sec": 40.53,
+      "chaos_lyapunov_timescales": 60.01532825781964,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 68,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4053,
+      "chaos_divergence_time_sec": 40.53,
+      "chaos_lyapunov_timescales": 60.01532825781964,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 69,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4053,
+      "chaos_divergence_time_sec": 40.53,
+      "chaos_lyapunov_timescales": 60.01532825781964,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 70,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 71,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 72,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 73,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 74,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 75,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 2986,
+      "chaos_divergence_time_sec": 29.86,
+      "chaos_lyapunov_timescales": 44.21558602957055,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 76,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 2986,
+      "chaos_divergence_time_sec": 29.86,
+      "chaos_lyapunov_timescales": 44.21558602957055,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 77,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 2986,
+      "chaos_divergence_time_sec": 29.86,
+      "chaos_lyapunov_timescales": 44.21558602957055,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 78,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 2282,
+      "chaos_divergence_time_sec": 22.82,
+      "chaos_lyapunov_timescales": 33.7910138377361,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 79,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1607,
+      "chaos_divergence_time_sec": 16.07,
+      "chaos_lyapunov_timescales": 23.795862943576648,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 80,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1607,
+      "chaos_divergence_time_sec": 16.07,
+      "chaos_lyapunov_timescales": 23.795862943576648,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 81,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1289,
+      "chaos_divergence_time_sec": 12.89,
+      "chaos_lyapunov_timescales": 19.087036300105975,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 82,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1289,
+      "chaos_divergence_time_sec": 12.89,
+      "chaos_lyapunov_timescales": 19.087036300105975,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 83,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1077,
+      "chaos_divergence_time_sec": 10.77,
+      "chaos_lyapunov_timescales": 15.947818537792191,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 84,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1077,
+      "chaos_divergence_time_sec": 10.77,
+      "chaos_lyapunov_timescales": 15.947818537792191,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 85,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1077,
+      "chaos_divergence_time_sec": 10.77,
+      "chaos_lyapunov_timescales": 15.947818537792191,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 86,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1077,
+      "chaos_divergence_time_sec": 10.77,
+      "chaos_lyapunov_timescales": 15.947818537792191,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 87,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 939,
+      "chaos_divergence_time_sec": 9.39,
+      "chaos_lyapunov_timescales": 13.90436546609737,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 88,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 822,
+      "chaos_divergence_time_sec": 8.22,
+      "chaos_lyapunov_timescales": 12.171872644443066,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 89,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 789,
+      "chaos_divergence_time_sec": 7.890000000000001,
+      "chaos_lyapunov_timescales": 11.683220822950826,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 90,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 375,
+      "chaos_divergence_time_sec": 3.75,
+      "chaos_lyapunov_timescales": 5.552861607866362,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 91,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 478,
+      "chaos_divergence_time_sec": 4.78,
+      "chaos_lyapunov_timescales": 7.078047596160323,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 92,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 477,
+      "chaos_divergence_time_sec": 4.7700000000000005,
+      "chaos_lyapunov_timescales": 7.063239965206013,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 93,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 476,
+      "chaos_divergence_time_sec": 4.76,
+      "chaos_lyapunov_timescales": 7.048432334251702,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 94,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 479,
+      "chaos_divergence_time_sec": 4.79,
+      "chaos_lyapunov_timescales": 7.092855227114633,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 95,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 24,
+      "chaos_divergence_time_sec": 0.24,
+      "chaos_lyapunov_timescales": 0.35538314290344714,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 96,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 97,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 98,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 99,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 100,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 101,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 102,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 103,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 104,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 105,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 106,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 107,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 108,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 109,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 110,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 111,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 112,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 113,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 114,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 115,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 116,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 117,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 118,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 119,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 120,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 121,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 122,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 123,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 124,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 125,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 126,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 127,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 128,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 5092,
+      "chaos_divergence_time_sec": 50.92,
+      "chaos_lyapunov_timescales": 75.40045681934804,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 129,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4405,
+      "chaos_divergence_time_sec": 44.050000000000004,
+      "chaos_lyapunov_timescales": 65.22761435373687,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 130,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4053,
+      "chaos_divergence_time_sec": 40.53,
+      "chaos_lyapunov_timescales": 60.01532825781964,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 131,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4053,
+      "chaos_divergence_time_sec": 40.53,
+      "chaos_lyapunov_timescales": 60.01532825781964,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 132,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4053,
+      "chaos_divergence_time_sec": 40.53,
+      "chaos_lyapunov_timescales": 60.01532825781964,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 133,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4053,
+      "chaos_divergence_time_sec": 40.53,
+      "chaos_lyapunov_timescales": 60.01532825781964,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 134,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 135,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 136,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 137,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 138,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 139,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 2986,
+      "chaos_divergence_time_sec": 29.86,
+      "chaos_lyapunov_timescales": 44.21558602957055,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 140,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 2986,
+      "chaos_divergence_time_sec": 29.86,
+      "chaos_lyapunov_timescales": 44.21558602957055,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 141,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 2986,
+      "chaos_divergence_time_sec": 29.86,
+      "chaos_lyapunov_timescales": 44.21558602957055,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 142,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 2282,
+      "chaos_divergence_time_sec": 22.82,
+      "chaos_lyapunov_timescales": 33.7910138377361,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 143,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1607,
+      "chaos_divergence_time_sec": 16.07,
+      "chaos_lyapunov_timescales": 23.795862943576648,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 144,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1607,
+      "chaos_divergence_time_sec": 16.07,
+      "chaos_lyapunov_timescales": 23.795862943576648,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 145,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1289,
+      "chaos_divergence_time_sec": 12.89,
+      "chaos_lyapunov_timescales": 19.087036300105975,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 146,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1289,
+      "chaos_divergence_time_sec": 12.89,
+      "chaos_lyapunov_timescales": 19.087036300105975,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 147,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1077,
+      "chaos_divergence_time_sec": 10.77,
+      "chaos_lyapunov_timescales": 15.947818537792191,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 148,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1077,
+      "chaos_divergence_time_sec": 10.77,
+      "chaos_lyapunov_timescales": 15.947818537792191,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 149,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1077,
+      "chaos_divergence_time_sec": 10.77,
+      "chaos_lyapunov_timescales": 15.947818537792191,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 150,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1077,
+      "chaos_divergence_time_sec": 10.77,
+      "chaos_lyapunov_timescales": 15.947818537792191,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 151,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 939,
+      "chaos_divergence_time_sec": 9.39,
+      "chaos_lyapunov_timescales": 13.90436546609737,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 152,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 822,
+      "chaos_divergence_time_sec": 8.22,
+      "chaos_lyapunov_timescales": 12.171872644443066,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 153,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 789,
+      "chaos_divergence_time_sec": 7.890000000000001,
+      "chaos_lyapunov_timescales": 11.683220822950826,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 154,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 375,
+      "chaos_divergence_time_sec": 3.75,
+      "chaos_lyapunov_timescales": 5.552861607866362,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 155,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 478,
+      "chaos_divergence_time_sec": 4.78,
+      "chaos_lyapunov_timescales": 7.078047596160323,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 156,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 477,
+      "chaos_divergence_time_sec": 4.7700000000000005,
+      "chaos_lyapunov_timescales": 7.063239965206013,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 157,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 476,
+      "chaos_divergence_time_sec": 4.76,
+      "chaos_lyapunov_timescales": 7.048432334251702,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 158,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 479,
+      "chaos_divergence_time_sec": 4.79,
+      "chaos_lyapunov_timescales": 7.092855227114633,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 159,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 24,
+      "chaos_divergence_time_sec": 0.24,
+      "chaos_lyapunov_timescales": 0.35538314290344714,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 160,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 161,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 162,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 163,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 164,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 165,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 166,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 167,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 168,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 169,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 170,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 171,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 172,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 173,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 174,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 175,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 176,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 177,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 178,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 179,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 180,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 181,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 182,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 183,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 184,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 185,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 186,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 187,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 188,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 189,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 190,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 191,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 192,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 5092,
+      "chaos_divergence_time_sec": 50.92,
+      "chaos_lyapunov_timescales": 75.40045681934804,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 193,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4405,
+      "chaos_divergence_time_sec": 44.050000000000004,
+      "chaos_lyapunov_timescales": 65.22761435373687,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 194,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4053,
+      "chaos_divergence_time_sec": 40.53,
+      "chaos_lyapunov_timescales": 60.01532825781964,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 195,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4053,
+      "chaos_divergence_time_sec": 40.53,
+      "chaos_lyapunov_timescales": 60.01532825781964,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 196,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4053,
+      "chaos_divergence_time_sec": 40.53,
+      "chaos_lyapunov_timescales": 60.01532825781964,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 197,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 4053,
+      "chaos_divergence_time_sec": 40.53,
+      "chaos_lyapunov_timescales": 60.01532825781964,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 198,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 199,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 200,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 201,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 202,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 3345,
+      "chaos_divergence_time_sec": 33.45,
+      "chaos_lyapunov_timescales": 49.53152554216795,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 203,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 2986,
+      "chaos_divergence_time_sec": 29.86,
+      "chaos_lyapunov_timescales": 44.21558602957055,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 204,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 2986,
+      "chaos_divergence_time_sec": 29.86,
+      "chaos_lyapunov_timescales": 44.21558602957055,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 205,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 2986,
+      "chaos_divergence_time_sec": 29.86,
+      "chaos_lyapunov_timescales": 44.21558602957055,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 206,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 2282,
+      "chaos_divergence_time_sec": 22.82,
+      "chaos_lyapunov_timescales": 33.7910138377361,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 207,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1607,
+      "chaos_divergence_time_sec": 16.07,
+      "chaos_lyapunov_timescales": 23.795862943576648,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 208,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1607,
+      "chaos_divergence_time_sec": 16.07,
+      "chaos_lyapunov_timescales": 23.795862943576648,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 209,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1289,
+      "chaos_divergence_time_sec": 12.89,
+      "chaos_lyapunov_timescales": 19.087036300105975,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 210,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1289,
+      "chaos_divergence_time_sec": 12.89,
+      "chaos_lyapunov_timescales": 19.087036300105975,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 211,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1077,
+      "chaos_divergence_time_sec": 10.77,
+      "chaos_lyapunov_timescales": 15.947818537792191,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 212,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1077,
+      "chaos_divergence_time_sec": 10.77,
+      "chaos_lyapunov_timescales": 15.947818537792191,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 213,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1077,
+      "chaos_divergence_time_sec": 10.77,
+      "chaos_lyapunov_timescales": 15.947818537792191,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 214,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1077,
+      "chaos_divergence_time_sec": 10.77,
+      "chaos_lyapunov_timescales": 15.947818537792191,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 215,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 939,
+      "chaos_divergence_time_sec": 9.39,
+      "chaos_lyapunov_timescales": 13.90436546609737,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 216,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 822,
+      "chaos_divergence_time_sec": 8.22,
+      "chaos_lyapunov_timescales": 12.171872644443066,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 217,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 789,
+      "chaos_divergence_time_sec": 7.890000000000001,
+      "chaos_lyapunov_timescales": 11.683220822950826,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 218,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 375,
+      "chaos_divergence_time_sec": 3.75,
+      "chaos_lyapunov_timescales": 5.552861607866362,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 219,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 478,
+      "chaos_divergence_time_sec": 4.78,
+      "chaos_lyapunov_timescales": 7.078047596160323,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 220,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 477,
+      "chaos_divergence_time_sec": 4.7700000000000005,
+      "chaos_lyapunov_timescales": 7.063239965206013,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 221,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 476,
+      "chaos_divergence_time_sec": 4.76,
+      "chaos_lyapunov_timescales": 7.048432334251702,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 222,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 479,
+      "chaos_divergence_time_sec": 4.79,
+      "chaos_lyapunov_timescales": 7.092855227114633,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 223,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 24,
+      "chaos_divergence_time_sec": 0.24,
+      "chaos_lyapunov_timescales": 0.35538314290344714,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 224,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 225,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 226,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 227,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 228,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 229,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 230,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 231,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 232,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 233,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 234,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 235,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 236,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 237,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 238,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 239,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 240,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 241,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 242,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 243,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 244,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 245,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 246,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 247,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 248,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 249,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 250,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 251,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 252,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 253,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 254,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    },
+    {
+      "bit_position": 255,
+      "counter_epochs_until_detect": 0,
+      "chaos_divergence_steps": 1,
+      "chaos_divergence_time_sec": 0.01,
+      "chaos_lyapunov_timescales": 0.014807630954310298,
+      "chaos_key_differs": 1
+    }
+  ],
+  "run_id": "v3-corruption-test",
+  "summary": {
+    "chaos_key_differs_fraction": 1,
+    "chaos_max_divergence_lyap_timescales": 75.40045681934804,
+    "chaos_mean_divergence_lyap_timescales": 15.886968429339282,
+    "counter_max_epochs_to_detect": 0,
+    "counter_mean_epochs_to_detect": 0
+  }
+}
