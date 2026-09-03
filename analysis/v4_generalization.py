@@ -200,3 +200,44 @@ if __name__ == "__main__":
     lambda_min_distribution()
     crossover_surface()
     pendulum_robustness()
+
+
+def keystream_entropy():
+    """#6: per-packet key-derivation input entropy (chaotic vs counter).
+
+    From results_v3/keystream_entropy_series.csv (measured via the Rust CLI
+    keystream-entropy subcommand). Plots empirical input entropy (bits/byte)
+    and distinct-state fraction vs packets, with the counter baseline shown
+    as an ordered/predictable reference.
+    """
+    import csv
+    recs = list(csv.DictReader(open(RESULTS / "keystream_entropy_series.csv")))
+    p4 = sorted(int(r["packets"]) for r in recs if r["state_bytes"] == "4")
+    p8 = sorted(int(r["packets"]) for r in recs if r["state_bytes"] == "8")
+    h4 = [float(r["H_bits_per_byte"]) for r in recs if r["state_bytes"] == "4"]
+    h8 = [float(r["H_bits_per_byte"]) for r in recs if r["state_bytes"] == "8"]
+    H, P = h4[-1], p4[-1]
+
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    ax.plot(p4, h4, "o-", color="tab:blue", label="4 state bytes/pkt")
+    ax.plot(p8, h8, "s--", color="tab:green", label="8 state bytes/pkt")
+    ax.axhline(8.0, color="gray", ls=":", label="ideal 8 bits/byte")
+    ax.set_xscale("log")
+    ax.set_ylim(4, 8.4)
+    ax.set_xlabel("ephemeral keys derived (packets)")
+    ax.set_ylabel("empirical input entropy (bits/byte)")
+    ax.set_title("Per-packet key-derivation input entropy from chaotic trajectory")
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    fig.savefig(FIG / "v4_keystream_entropy.pdf")
+    plt.close(fig)
+    print("saved v4_keystream_entropy.pdf")
+    print(f"chaotic input entropy at {P} packets x4B: {H:.3f} bits/byte")
+    print("counter reference: monotone, next-input predictable (0 ordering entropy)")
+
+
+if __name__ == "__main__":
+    lambda_min_distribution()
+    crossover_surface()
+    pendulum_robustness()
+    keystream_entropy()
