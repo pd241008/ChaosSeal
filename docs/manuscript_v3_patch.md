@@ -616,3 +616,98 @@ G-1; retain it only as the certification step toward a *guaranteed* global minim
 | Live-join | `netsim --membership-test --membership-joins 8` | `v3-membership-join-*.json` |
 | Keystream entropy | `chaosseal keystream-entropy --packets N --state-bytes B` | `v4_keystream_entropy.pdf`, `keystream_entropy_series.csv` |
 | Fixed-point vs libm | `cargo test --release test_transcendental_worst_case_error_vs_f64` | (Limitations §8) |
+
+---
+
+## G-7 — New: "Why Chaos?" background/motivation subsection (three-regime framing)
+
+**Where:** a short background subsection early in the paper (Related Work or right before
+the protocol description), giving the foundational justification for choosing a chaotic
+(key-rotation) source rather than a pseudo-random counter or a true-random physical source.
+This framing follows the three-regime taxonomy standard in the chaos-cryptography
+literature (Alvarez & Li 2006; Abba 2024, ch. 1) and — importantly — is consistent with
+CEP itself: the HMAC commitment only works because the orbit is deterministic and
+reproducible, so chaos must not be mislabeled as "true random."
+
+**Prose (paste):**
+
+> **Why chaotic state rather than a pseudo-random counter or a true-random source?**
+> Entropy for key diversification can be drawn from three qualitatively different
+> sources, and CEP deliberately uses a fourth position that is often conflated with the
+> others. A *true-random* source (thermal or quantum noise) is nondeterministic and
+> irreproducible: no two draws are equal, so it is ideal for one-time entropy but cannot
+> be replayed or audited, and each satellite would need an independent physical
+> entropy generator. A *pseudo-random* counter (HKDF over an incrementing value, as in
+> our counter baseline) is deterministic and reproducible, but its next state is a
+> trivial, fully-predictable increment of the previous one; given the seed and the
+> current position, the entire future key schedule is known.
+>
+> Chaos occupies a distinct third regime that combines the virtues and discards the
+> weaknesses of both. A chaotic orbit is *deterministic* — the same initial conditions
+> and parameters reproduce the same trajectory, which is precisely what lets two
+> satellites independently derive the same key and enables the exact HMAC commitment
+> check. Yet it is *aperiodic* and *effectively unpredictable per step*: under
+> sensitive dependence on initial conditions each additional state requires solving a
+> nonlinear ordinary differential equation whose divergence from any guessed nearby
+> orbit grows exponentially at the measured rate $\lambda_1 \approx 1.48\ \text{nats/s}$
+> (Benettin) — a divergence time-scale of $\sim 0.5$–$1\ \text{s}$. An adversary who
+> observes a sequence of states cannot extrapolate the next one by simple arithmetic the
+> way a counter can be advanced; they must integrate the chaotic system from an
+> initial condition they do not know, within an uncertainty that is amplified rather than
+> contained. This is the standard "determinism without predictability" that motivates
+> chaos-based designs (Alvarez & Li 2006; Abba 2024, ch. 1).
+>
+> We measure the practical effect of this distinction directly (Fig.~\ref{fig:keystream-entropy}):
+> the chaotic trajectory injects $\approx 8$~bits/byte of empirical input entropy per
+> per-packet key (fresh, aperiodic state, $100\%$ distinct over $16\,384$ keys), whereas
+> the counter baseline's input is a monotone, next-value-predictable sequence. CEP
+> therefore needs no on-board physical entropy source (a real cost on radiation-hardened
+> satellites), remains fully reproducible for verification and audit, and obtains
+> per-packet key diversification that is not trivially advanceable. It is *not* claimed
+> to be true randomness — a claim the literature cautions against and that the
+> protocol's own reproducibility would contradict — but rather near-uniform,
+> aperiodic, ODE-hard-to-predict state, which is the property the key schedule needs.
+
+**Optional compact table (paste alongside):**
+
+```latex
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lccc}
+\hline
+Property & True-random & Pseudo-random (counter) & Chaotic (CEP) \\
+\hline
+Deterministic / reproducible & No & Yes & Yes \\
+Needs physical entropy source & Yes & No & No \\
+Per-step next-state prediction & -- & trivial (+1) & ODE-hard (SDIC) \\
+Aperiodic state evolution & -- & periodic/cyclic & aperiodic ($\lambda_1>0$) \\
+Fwd-hiding per step & absolute & none & exponential ($e^{\lambda_1}$) \\
+Verifiable / auditable & No & Yes & Yes \\
+\hline
+\end{tabular}
+\caption{The three entropy-source regimes. Chaos (CEP) is the only one that is at
+once reproducible, entropy-source-free, and effectively-unpredictable per step.}
+\label{tab:entropy-regimes}
+\end{table}
+```
+
+**References to add to the bibliography (confirmed sources):**
+
+- G. Alvarez and S. Li, "Some basic cryptographic requirements for chaos-based
+  cryptosystems," *Int. J. Bifurcation and Chaos*, 2006. [canonical table: chaotic
+  property ↔ cryptographic property; determinism↔pseudo-randomness.]
+- A. Abba, *Analysable Chaos-based Design Paradigms for Cryptographic Applications*,
+  PhD thesis, Università degli Studi dell'Insubria, 2024 (IRIS 11383/2208092), ch. 1.
+  [background: chaos as an alternative randomness source to LFSR/PRNG, motivations of
+  SDIC, ergodicity, aperiodicity; the shift toward simple, analysable designs.]
+- B. Schneier / standard PRNG reference, or the NIST SP 800-90A DRBG references, to
+  anchor the "pseudo-random counter" and "true random = physical source" definitions if
+  desired.
+
+**Consistency note:** this section uses the same measured numbers already introduced
+elsewhere ($\lambda_1 \approx 1.48$ nats/s Benettin single-trajectory in §6.4-turned;
+per-key entropy $8$~bits/byte from G-3/Fig.~\ref{fig:keystream-entropy}). It deliberately
+avoids the historically-broken "chaos as direct keystream" framing (addressed by the
+HKDF-to-AES-256-GCM construction, per the abstract), citing the thesis's central lesson
+that chaos-based designs fail when they are not simple and analysable.
