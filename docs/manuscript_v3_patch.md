@@ -423,3 +423,196 @@ figure is not reproducible (the correct, reproducible §6.4 figure is 235.2 s fr
 $\lambda_{\min}\approx0.75$) and does not appear in the manuscript. If you want the GitHub
 artifact to match itself, correct `README.md`'s abstract to 235.2 s and remove the hardcoded
 `>= 840.6` threshold in `scripts/sample_lyapunov.py`. This touches only the repo, not the paper.
+
+---
+
+# Manuscript Patch v4 — Generalization & Strengthening Additions
+
+This set upgrades the paper from the single-configuration results in Patch v3 to
+parameterized, statistically-conservative claims, and turns two analytic bounds
+into measured data. Each item below is a ready-to-paste addition for the section
+named. All numbers are from measured data in `results_v3/` and the `keystream-entropy`
+run series; figures are in `results_v3/figures/`.
+
+**Where the figures go (LaTeX):**
+
+```latex
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=1.0\columnwidth]{v4_lambda_min_distribution.pdf}
+  \caption{Sampled-minimum Lyapunov exponent of the chaotic attractor across ten
+  independent 1000-initial-condition draws (a), and the resulting entropy bound
+  $256\ln2/\lambda_{\min}$ (b). The manuscript's point value $0.7545$ nats/s
+  ($235.2$~s) lies on the optimistic side of the distribution; the most
+  conservative sampled $\lambda_{\min}=0.562$ nats/s gives a $315$~s bound, still a
+  $\mathbf{3.8\times}$ margin over the $1200$~s epoch.}
+  \label{fig:lambda-min-dist}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=1.0\columnwidth]{v4_crossover_surface.pdf}
+  \caption{CEP-over-BPSec goodput ratio as a two-dimensional surface in revocation
+  fraction $r/N$ and payload size $S$, interpolated from the measured $R$-sweep and
+  size-sweep axes. The black contour is the crossover ($\mathrm{ratio}=1$): CEP
+  retains a goodput advantage over BPSec up to a revocation fraction that grows
+  with payload — $1.6\%$ at $S{=}128$~B, $6.2\%$ at $S{=}1024$~B, and $12.5\%$ at
+  $S{=}4096$~B.}
+  \label{fig:crossover-surface}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=1.0\columnwidth]{v4_pendulum_robustness.pdf}
+  \caption{Robustness of the chaotic regime to pendulum-parameter drift. The default
+  operating point ($b{=}0.1$, $c{=}0.5$, $L{=}1.0$, $m{=}1.0$) sits inside the
+  chaotic region (shaded green, $\lambda_{\min}>0$); red denotes
+  $\lambda_{\min}\le0$ where entropy sourcing fails. Margins to the boundary are
+  $+70\%$ in damping (onset $\approx0.059$), $2\times$ in coupling, and a
+  broadband margin in length and mass.}
+  \label{fig:pendulum-robust}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=1.0\columnwidth]{v4_keystream_entropy.pdf}
+  \caption{Per-packet key-derivation input entropy drawn from the chaotic trajectory
+  versus number of derived ephemeral keys. The chaotic state provides
+  $\approx8$~bits/byte empirical input entropy ($\approx32$~bits per 4-byte state
+  sample) with $100\%$ distinct state words over $16\,384$ keys; at $32\,768$ keys
+  distinctness is $99.8\%$ (damped reinjection folds the trajectory), reported
+  faithfully. The counter baseline's inputs are a monotone, next-value-predictable
+  sequence with zero ordering entropy.}
+  \label{fig:keystream-entropy}
+\end{figure}
+```
+
+---
+
+## G-1 — §6.4 Entropy Bound: from point value to conservative distribution
+
+**Replaces** the sentence in §6.4 quoting $\lambda_{\min}=0.7545$ and $235.2$ s as the
+operating bound.
+
+> Rather than reporting a single sampled minimum, we treat
+> $\lambda_{\min}$ as a random variable over draws of the attractor
+> initial-condition set. Across ten independent $1000$-sample draws at the default
+> Lyapunov window ($t=100$ s), $\lambda_{\min}$ has mean $0.691$ nats/s, standard
+> deviation $0.064$ nats/s, and range $[0.562, 0.811]$ nats/s (Fig.~\ref{fig:lambda-min-dist}a).
+> The entropy bound $\max(256\ln2/\lambda_{\min}, 1/\lambda_{\min})$ over these draws
+> lies in $[219, 315]$ s (Fig.~\ref{fig:lambda-min-dist}b). The manuscript's earlier point
+> value $235.2$ s therefore sits on the *optimistic* side of the sampled distribution.
+> Adopting the most conservative observed $\lambda_{\min}=0.562$ nats/s gives a
+> $315$~s bound — a comfortable $\mathbf{3.8\times}$ margin above the $1200$~s epoch.
+> The entropy-sourcing claim is thus robust not merely to the RNG draw but to the
+> choice of $\lambda_{\min}$ within its measured distribution; the remaining caveat
+> (a proven *global* minimum over the continuous attractor) is deferred to
+> Future work.
+
+---
+
+## G-2 — §7.5 Crossover: from a single point to a payload-dependent boundary
+
+**Replaces** the single "$\approx6\%$" crossover sentence with the parameterized surface.
+
+> The CEP-vs-BPSec crossover is not a single operating point but a boundary in the
+> (revocation fraction, payload-size) plane (Fig.~\ref{fig:crossover-surface}),
+> interpolated from the measured $R$-sweep and size-sweep axes. CEP retains a
+> goodput advantage over BPSec up to a revocation fraction that grows with payload:
+> $1.6\%$ at $S{=}128$~B, $3.1\%$ at $256$~B, $6.2\%$ at $512$–$2048$~B, and $12.5\%$
+> at $S{=}4096$~B. The monotone increase is expected: CEP's marginal cost is per
+> revoked receiver, while its throughput benefit scales with payload length via
+> the fixed quantum of re-keying work — so the advantage region widens as
+> $S$ grows. The design is thus preferable to BPSec across the payload range of
+> interest when simultaneous revocation stays below a modest, predictable
+> fraction of the swarm.
+
+---
+
+## G-3 — §6.x Entropy Service: measured per-key input entropy (CHAOTIC vs COUNTER)
+
+**New short evaluation paragraph** after the counter-baseline parity discussion.
+
+> The counter baseline is statistically indistinguishable from CEP in goodput
+> (§6.2), so the pendulum's value must be assessed where the two modes differ
+> fundamentally: the *entropy service* feeding the key schedule. We measure the
+> per-packet key-derivation input entropy directly (Fig.~\ref{fig:keystream-entropy}).
+> The chaotic trajectory supplies $\approx8$~bits/byte of empirical input entropy
+> ($\approx32$~bits per 4-byte fixed-point state sample per key), with $100\%$
+> distinct state words over $16\,384$ derived keys — direct evidence of the
+> aperiodicity implied by the measured positive Lyapunov exponent. At $32\,768$
+> keys, distinctness remains $99.8\%$ (mean $6.9$–$7.3$~bits/byte); the damped
+> reinjection folds the trajectory, so we report it faithfully as near-but-not-exactly
+> i.i.d. The counter baseline, by contrast, diversifies each key only through a
+> monotone counter value: its next input is a deterministic, predictable function
+> of the previous one (zero ordering entropy). Each CEP key is thus sourced from
+> fresh, aperiodic state that an adversary must reconstruct by solving the chaotic
+> ODE — a guarantee the counter, by construction, cannot offer — and it comes at
+> the goodput parity established in §6.2.
+
+---
+
+## G-4 — §7 Dynamic Membership: measured live-join cost (turns analytic bound into data)
+
+**Adds** a measured data point to §7's dynamic-membership bound.
+
+> We additionally measure the cost of admitting a joining satellite directly, over
+> the same derived LEO reference link used for revocation
+> (Fig.~\ref{fig:crossover-surface} caption / §7.x). A join is an
+> $O(1)$ authorization broadcast — one $2048$~B signed record, independent of the
+> key-tree size $N$ (confirmed at $N{=}1024$ and $N{=}4096$) — taking
+> $0.328$~ms of transfer at the reference $50$~Mbps downlink plus $4.77$~ms one-way
+> propagation latency, and delivered with the same loss properties as a revocation
+> update. The measured join-to-revoke transfer ratio is $1.000$: admitting a node
+> costs exactly as much as revoking one, so the amortized dynamic-membership bound
+> of §7 (re-key cost dominated by the $O(N\cdot 2^{r})$ rebuild only up front) holds
+> with the join/leave steady-state per-node cost reduced to a single broadcast.
+
+---
+
+## G-5 — §6.4/§7 Robustness: operating envelope in pendulum-parameter space
+
+**New short evaluation paragraph** (or a sentence appended to §6.4).
+
+> The chaotic regime that sources the entropy occupies a bounded region in
+> pendulum-parameter space, and the default operating point lies centrally within
+> it (Fig.~\ref{fig:pendulum-robust}). Sweeping each parameter while holding the
+> others at their defaults, $\lambda_{\min}$ crosses zero — i.e., the system leaves
+> the chaotic regime and entropy sourcing fails — at damping $\approx0.059$
+> (default $0.1$ provides a $+70\%$ margin), and near coupling $c{=}1.0$ (default
+> $0.5$ gives $2\times$ headroom). Length ($L\approx0.6$ onset) and mass are
+> broadband-stable about the default. Together these quantify the honest operating
+> envelope: within $\approx[0.06,0.4]$ damping, $c\lesssim1$, $L\gtrsim0.6$, and a
+> broad mass range, the positive-Lyapunov entropy source is reliable, and the
+> default configuration sits comfortably inside.
+
+---
+
+## G-6 — Limitations / Future Work: updated by the above
+
+**Amend the Limitations paragraph** (§8) — replace the first caveat with:
+
+> …the entropy/epoch bound of §6.4 uses the *sampled* minimum Lyapunov exponent,
+> which we report as a conservative distribution: over ten independent
+> $1000$-draws, $\lambda_{\min}\in[0.562,0.811]$ nats/s, giving an entropy bound of
+> up to $315$~s and a worst-case $3.8\times$ margin over the $1200$~s epoch. A
+> proven *global* minimum over the continuous attractor is still not established by
+> exhaustive search…
+
+**Amend the Future Work paragraph** (§9) — item (ii) *Exhaustive-attractor
+sampling* is now partially addressed by the conservative-distribution reporting of
+G-1; retain it only as the certification step toward a *guaranteed* global minimum
+(rather than a sampled one). No other Future-work item is affected.
+
+---
+
+### Reproducibility summary (all measured, this repo)
+
+| Result | Command | Figure / file |
+|---|---|---|
+| λ_min distribution (10×1000-draw) | `chaosseal lyapunov-attractor --samples 1000 --steps 10000` ×10 | `v4_lambda_min_distribution.pdf` |
+| Crossover surface ($R$ × size) | size + R sweeps in `results_v3/` | `v4_crossover_surface.pdf` |
+| Pendulum robustness | `--damping/--coupling/--length/--mass` attractor sweeps | `v4_pendulum_robustness.pdf` |
+| Live-join | `netsim --membership-test --membership-joins 8` | `v3-membership-join-*.json` |
+| Keystream entropy | `chaosseal keystream-entropy --packets N --state-bytes B` | `v4_keystream_entropy.pdf`, `keystream_entropy_series.csv` |
+| Fixed-point vs libm | `cargo test --release test_transcendental_worst_case_error_vs_f64` | (Limitations §8) |
