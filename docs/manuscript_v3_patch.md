@@ -619,56 +619,67 @@ G-1; retain it only as the certification step toward a *guaranteed* global minim
 
 ---
 
-## G-7 — New: "Why Chaos?" background/motivation subsection (three-regime framing)
+## G-7 — New: "Why Chaos?" background/motivation subsection (randomness-spectrum framing)
 
 **Where:** a short background subsection early in the paper (Related Work or right before
-the protocol description), giving the foundational justification for choosing a chaotic
-(key-rotation) source rather than a pseudo-random counter or a true-random physical source.
-This framing follows the three-regime taxonomy standard in the chaos-cryptography
-literature (Alvarez & Li 2006; Abba 2024, ch. 1) and — importantly — is consistent with
-CEP itself: the HMAC commitment only works because the orbit is deterministic and
-reproducible, so chaos must not be mislabeled as "true random."
+ the protocol description), giving the foundational justification for choosing a chaotic
+ (key-rotation) source rather than a pseudo-random counter or a true-random physical source.
+ The framing follows the chapter titled "The Modern Role of Randomness" (Gerolimetto
+ Fabrello 2026, ch. 1), which positions randomness as a *spectrum* — from algorithmic
+ pseudo-random generators (PRNG) to physical true-random generators (TRNG/QRNG) — and
+ argues that source quality is *task-dependent* and that the two ends are best combined in
+ hybrids rather than treated as competitors. CEP adopts this framing and — importantly —
+ it is consistent with CEP itself: the HMAC commitment only works because the orbit is
+ deterministic and reproducible, so chaos must not be mislabeled as "true random."
 
 **Prose (paste):**
 
 > **Why chaotic state rather than a pseudo-random counter or a true-random source?**
-> Entropy for key diversification can be drawn from three qualitatively different
-> sources, and CEP deliberately chooses one of the three that is often conflated with
-> the others. A *true-random* source (thermal or quantum noise) is nondeterministic and
-> irreproducible: no two draws are equal, so it is ideal for one-time entropy but cannot
-> be replayed or audited, and each satellite would need an independent physical
-> entropy generator. A *pseudo-random* counter (HKDF over an incrementing value, as in
-> our counter baseline) is deterministic and reproducible, but its next state is a
-> trivial, fully-predictable increment of the previous one; given the seed and the
-> current position, the entire future key schedule is known.
+> Randomness does not come in a single, absolute form: it exists on a spectrum, and the
+> right choice for a given task depends on where unpredictability matters [Gerolimetto
+> Fabrello 2026, ch. 1]. Two extremes delimit that spectrum. A *true-random* source
+> (physical, e.g. thermal or quantum noise — TRNG/QRNG) is nondeterministic and
+> irreproducible: no two draws are equal, which is ideal for one-time entropy, but it is
+> slow, can carry source bias, and requires dedicated hardware — a real cost on
+> radiation-hardened satellites — and its outputs cannot be replayed or audited. A
+> *pseudo-random* counter (HKDF over an incrementing value, as in our counter baseline)
+> is deterministic, reproducible, and cheap, but its next state is a trivial,
+> fully-predictable increment of the previous one; given the seed and the current
+> position, the entire future key schedule is known — precisely the failure mode the
+> thesis warns against for security-sensitive uses.
 >
-> Chaos occupies a distinct third regime that combines the virtues and discards the
-> weaknesses of both. A chaotic orbit is *deterministic* — the same initial conditions
-> and parameters reproduce the same trajectory, which is precisely what lets two
-> satellites independently derive the same key and enables the exact HMAC commitment
-> check. Yet it is *aperiodic* and *effectively unpredictable per step*: under
-> sensitive dependence on initial conditions each additional state requires solving a
-> nonlinear ordinary differential equation whose divergence from any guessed nearby
-> orbit grows exponentially at the measured rate $\lambda_1 \approx 1.48\ \text{nats/s}$
-> (Benettin) — a divergence time-scale of $\sim 0.5$–$1\ \text{s}$. An adversary who
-> observes a sequence of states cannot extrapolate the next one by simple arithmetic the
-> way a counter can be advanced; they must integrate the chaotic system from an
-> initial condition they do not know, within an uncertainty that is amplified rather than
-> contained. This is the standard "determinism without predictability" that motivates
-> chaos-based designs (Alvarez & Li 2006; Abba 2024, ch. 1).
+> Following the spectrum framing, chaos occupies a distinct middle region that combines
+> the reproducibility of the algorithmic end with effective per-step unpredictability. A
+> chaotic orbit is *deterministic* — the same initial conditions and parameters
+> reproduce the same trajectory, which is precisely what lets two satellites
+> independently derive the same key and enables the exact HMAC commitment check. Yet it
+> is *aperiodic* and *effectively unpredictable per step*: under sensitive dependence on
+> initial conditions each additional state requires solving a nonlinear ordinary
+> differential equation whose divergence from any guessed nearby orbit grows
+> exponentially at the measured rate $\lambda_1 \approx 1.48\ \text{nats/s}$ (Benettin) —
+> a divergence time-scale of $\sim 0.5$–$1\ \text{s}$. An adversary who observes a
+> sequence of states cannot extrapolate the next one by simple arithmetic the way a
+> counter can be advanced; they must integrate the chaotic system from an initial
+> condition they do not know, within an uncertainty that is amplified rather than
+> contained.
 >
-> We measure the practical effect of this distinction directly (Fig.~\ref{fig:keystream-entropy}):
-> the chaotic trajectory injects $\approx 8$~bits/byte of empirical input entropy per
-> per-packet key (fresh, aperiodic state, $100\%$ distinct over $16\,384$ keys), whereas
-> the counter baseline's input is a monotone, next-value-predictable sequence. CEP
-> therefore needs no on-board physical entropy source (a real cost on radiation-hardened
-> satellites), remains fully reproducible for verification and audit, and obtains
-> per-packet key diversification that is not trivially advanceable. It is *not* claimed
-> to be true randomness — a claim the literature cautions against and that the
-> protocol's own reproducibility would contradict — but rather near-uniform,
+> This maps directly onto the thesis's core guidance: reproducibility and predictability
+> are decoupled, and the appropriate source is the least expensive one that provides
+> enough unpredictability for the task. CEP needs no on-board physical entropy source,
+> remains fully reproducible for verification and audit, and yet cannot have its next
+> key trivially advanced by an observer — the hybrid spirit of the thesis, where a cheap
+> algorithmic source is used wherever it is adequate and physical entropy is not
+> required on every node. We measure the practical effect directly
+> (Fig.~\ref{fig:keystream-entropy}): the chaotic trajectory injects $\approx 8$~bits/byte
+> of empirical input entropy per per-packet key (fresh, aperiodic state, $100\%$ distinct
+> over $16\,384$ keys), whereas the counter baseline's input is a monotone,
+> next-value-predictable sequence. It is *not* claimed to be true randomness — a claim
+> the thesis's QRNG chapter reserves for genuinely stochastic physical sources, and that
+> the protocol's own reproducibility would contradict — but rather near-uniform,
 > aperiodic, ODE-hard-to-predict state, which is the property the key schedule needs.
 
-**Optional compact table (paste alongside):**
+**Optional compact table (paste alongside; place on the randomness spectrum of
+Gerolimetto Fabrello 2026, ch. 1):**
 
 ```latex
 \begin{table}[t]
@@ -692,23 +703,35 @@ once reproducible, entropy-source-free, and effectively-unpredictable per step.}
 \end{table}
 ```
 
-**References to add to the bibliography (confirmed sources):**
+**References to add to the bibliography (confirmed source — this is the thesis the
+author supplied in the repo, `thesis_final (2).pdf`):**
 
+- C. Gerolimetto Fabrello, *Qualification of a QRNG and exemplary application in
+  Differential Privacy*, Ph.D. thesis, Department of Theoretical and Applied Sciences,
+  Università degli Studi dell'Insubria, XXXVIII cycle, 2022–2025, ch. 1 ("The Modern
+  Role of Randomness"). Repository handle 11383/2208092.
+  [background: randomness as a spectrum — algorithmic PRNG vs physical TRNG/QRNG;
+  task-dependent quality, reproducibility vs unpredictability, hybrid entropy
+  architectures. Precise support for the "why chaos" framing above; NOT a USM thesis —
+  the earlier attribution was a search artifact, corrected here.]
 - G. Alvarez and S. Li, "Some basic cryptographic requirements for chaos-based
-  cryptosystems," *Int. J. Bifurcation and Chaos*, 2006. [canonical table: chaotic
-  property ↔ cryptographic property; determinism↔pseudo-randomness.]
-- A. Abba, *Analysable Chaos-based Design Paradigms for Cryptographic Applications*,
-  PhD thesis, Universiti Sains Malaysia, 2024 (also held in Università degli Studi
-  dell'Insubria IRIS, handle 11383/2208092), ch. 1.
-  [background: chaos as an alternative randomness source to LFSR/PRNG, motivations of
-  SDIC, ergodicity, aperiodicity; the shift toward simple, analysable designs.]
+  cryptosystems," *Int. J. Bifurcation and Chaos*, 2006.
+  [canonical mapping of chaotic properties (SDIC, ergodicity, aperiodicity) to
+  cryptographic requirements; the "determinism without predictability" standpoint; keep
+  alongside the thesis for the chaos-specific terminology.]
 - B. Schneier / standard PRNG reference, or the NIST SP 800-90A DRBG references, to
   anchor the "pseudo-random counter" and "true random = physical source" definitions if
   desired.
 
 **Consistency note:** this section uses the same measured numbers already introduced
 elsewhere ($\lambda_1 \approx 1.48$ nats/s Benettin single-trajectory in §6.4-turned;
-per-key entropy $8$~bits/byte from G-3/Fig.~\ref{fig:keystream-entropy}). It deliberately
-avoids the historically-broken "chaos as direct keystream" framing (addressed by the
-HKDF-to-AES-256-GCM construction, per the abstract), citing the thesis's central lesson
-that chaos-based designs fail when they are not simple and analysable.
+per-key entropy $8$~bits/byte from G-3/Fig.~\ref{fig:keystream-entropy}). It relies on the
+verified thesis in the repo (`thesis_final (2).pdf`) rather than a web-searched artifact —
+a key correction, since handle 11383/2208092 is this Insubria dissertation, not the
+USM thesis that an earlier draft mistakenly cited. The chaos-specific terminology
+(SDIC, determinism-without-predictability) is kept via Alvarez & Li, while the qualitative
+"why chaos vs pseudo vs true" argument follows the thesis's randomness-spectrum and
+task-dependence framing. It deliberately avoids the historically-broken "chaos as direct
+keystream" framing (addressed by the HKDF-to-AES-256-GCM construction, per the abstract):
+that lesson is consistent with the thesis's emphasis on simple, analysable, workload-
+appropriate designs.
