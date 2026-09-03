@@ -633,8 +633,8 @@ reproducible, so chaos must not be mislabeled as "true random."
 
 > **Why chaotic state rather than a pseudo-random counter or a true-random source?**
 > Entropy for key diversification can be drawn from three qualitatively different
-> sources, and CEP deliberately uses a fourth position that is often conflated with the
-> others. A *true-random* source (thermal or quantum noise) is nondeterministic and
+> sources, and CEP deliberately chooses one of the three that is often conflated with
+> the others. A *true-random* source (thermal or quantum noise) is nondeterministic and
 > irreproducible: no two draws are equal, so it is ideal for one-time entropy but cannot
 > be replayed or audited, and each satellite would need an independent physical
 > entropy generator. A *pseudo-random* counter (HKDF over an incrementing value, as in
@@ -698,7 +698,8 @@ once reproducible, entropy-source-free, and effectively-unpredictable per step.}
   cryptosystems," *Int. J. Bifurcation and Chaos*, 2006. [canonical table: chaotic
   property ↔ cryptographic property; determinism↔pseudo-randomness.]
 - A. Abba, *Analysable Chaos-based Design Paradigms for Cryptographic Applications*,
-  PhD thesis, Università degli Studi dell'Insubria, 2024 (IRIS 11383/2208092), ch. 1.
+  PhD thesis, Universiti Sains Malaysia, 2024 (also held in Università degli Studi
+  dell'Insubria IRIS, handle 11383/2208092), ch. 1.
   [background: chaos as an alternative randomness source to LFSR/PRNG, motivations of
   SDIC, ergodicity, aperiodicity; the shift toward simple, analysable designs.]
 - B. Schneier / standard PRNG reference, or the NIST SP 800-90A DRBG references, to
