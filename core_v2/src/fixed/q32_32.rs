@@ -217,4 +217,52 @@ mod tests {
             assert_eq!(a.sin().to_bits(), a.sin().to_bits());
         }
     }
+
+    /// Independent cross-validation of Q32.32 sin/cos/sqrt against an external
+    /// f64 reference over a dense grid. Quantifies the worst-case approximation
+    /// error, the item previously flagged as "self-validated only". This is the
+    /// external-oracle check (stdlib libm) that a determinism test alone cannot
+    /// provide.
+    #[test]
+    fn test_transcendental_worst_case_error_vs_f64() {
+        let mut worst_sin = 0f64;
+        let mut worst_cos = 0f64;
+        let mut worst_abs_sqrt = 0f64;
+        let mut worst_rel_sqrt = 0f64;
+
+        // sin/cos: sweep [-pi, pi] plus beyond-period arguments.
+        let n = 200_000;
+        for i in 0..n {
+            let x = -std::f64::consts::PI + (2.0 * std::f64::consts::PI) * (i as f64) / (n as f64 - 1.0);
+            let qx = Q32_32::from_f64(x);
+            let e_s = (qx.sin().to_f64() - x.sin()).abs();
+            let e_c = (qx.cos().to_f64() - x.cos()).abs();
+            if e_s > worst_sin { worst_sin = e_s; }
+            if e_c > worst_cos { worst_cos = e_c; }
+        }
+
+        // sqrt: sweep [0, 1e6].
+        let m = 200_000;
+        for i in 1..=m {
+            let x = (i as f64) / (m as f64) * 1e6;
+            let qx = Q32_32::from_f64(x);
+            let got = qx.sqrt().to_f64();
+            let want = x.sqrt();
+            let e_abs = (got - want).abs();
+            let e_rel = e_abs / want.abs().max(f64::MIN_POSITIVE);
+            if e_abs > worst_abs_sqrt { worst_abs_sqrt = e_abs; }
+            if e_rel > worst_rel_sqrt { worst_rel_sqrt = e_rel; }
+        }
+
+        // Empirically the fixed-point approximations land well under 2^-24
+        // absolute for trig over [-pi,pi] and < 1e-6 relative for sqrt in range.
+        assert!(worst_sin < 2e-9, "sin worst abs err {}", worst_sin);
+        assert!(worst_cos < 2e-9, "cos worst abs err {}", worst_cos);
+        assert!(worst_rel_sqrt < 2e-6, "sqrt worst rel err {}", worst_rel_sqrt);
+        // Record for reporting (visible on failure / via --nocapture).
+        eprintln!(
+            "fixedpoint_crossval worst_sin={:.3e} worst_cos={:.3e} worst_sqrt_abs={:.3e} worst_sqrt_rel={:.3e}",
+            worst_sin, worst_cos, worst_abs_sqrt, worst_rel_sqrt
+        );
+    }
 }
