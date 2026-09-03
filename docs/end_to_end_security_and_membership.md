@@ -116,13 +116,15 @@ corruption *faster* (immediately) but provides *no entropy amplification*,
 whereas the pendulum provides dynamical amplification that is the actual
 security property the design claims. Both detect an HMAC mismatch as soon as
 they disagree; the meaningful difference is *why* the key stream becomes useless
-and *at what guaranteed delay*. The design commits to a 119.8 s epoch
-(committed value; the aggressive 840.6 s upper bound is not supported by the
-measurements, which average 10.7 s divergence), so the dishonest-replay hiding
-window is bounded by ~120 s worst case rather than by any exponential blow-up —
-the divergence statistics above bound the realistic breaking distance to one
-`O(seconds-to-tens-of-seconds)` epoch. Both quantities are quantified here for
-the first time.
+and *at what guaranteed delay*. The protocol's §6.4 epoch bound is the
+sampled-minimum entropy time-scale, $\max(256\ln2/\lambda_{\min},
+1/\lambda_{\min})$, computed from the attractor-sampled $\lambda_{\min}\approx
+0.75{-}0.80\ \text{nats}/\text{s}$ at the default Lyapunov window
+($t=100\,\text{s}$), giving a bound ≈ 235 s and a ≈ 5× margin above the
+1200 s epoch — with the caveat, already in the manuscript, that this is a
+sampled minimum, not a proven global minimum. The divergence statistics above
+(mean 10.7 s across 256 bit positions) bound the realistic breaking distance to
+one `O(seconds-to-tens-of-seconds)` epoch.
 
 ---
 

@@ -44,6 +44,9 @@ func run(args []string) error {
 	if cfg.CorruptionTest {
 		return runCorruptionTest(cfg, resultsDir)
 	}
+	if cfg.MembershipTest {
+		return runMembershipTest(cfg, resultsDir)
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
@@ -121,5 +124,27 @@ func runCorruptionTest(cfg *engine.Config, resultsDir string) error {
 		return err
 	}
 	fmt.Printf("corruption-test: ran %d bit positions -> %s\n", n, path)
+	return nil
+}
+
+func runMembershipTest(cfg *engine.Config, resultsDir string) error {
+	runner := engine.MembershipRunner{}
+	joins, revokes, err := runner.RunAdmission(cfg, cfg.MembershipJoins)
+	if err != nil {
+		return err
+	}
+	doc := engine.NewMembershipResult(cfg, joins, revokes)
+	if err := os.MkdirAll(resultsDir, 0o755); err != nil {
+		return err
+	}
+	data, err := json.MarshalIndent(doc, "", "  ")
+	if err != nil {
+		return err
+	}
+	path := filepath.Join(resultsDir, cfg.RunID+".json")
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		return err
+	}
+	fmt.Printf("membership-test: ran %d join broadcasts -> %s\n", len(joins), path)
 	return nil
 }
