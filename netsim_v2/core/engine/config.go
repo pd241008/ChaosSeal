@@ -49,6 +49,8 @@ type Config struct {
 	RunID       string   `json:"run_id"`
 	Seed        int64    `json:"rng_seed"`
 	CorruptionTest bool   `json:"corruption_test,omitempty"`
+	MembershipTest bool   `json:"membership_test,omitempty"`
+	MembershipJoins int   `json:"membership_joins,omitempty"`
 	CorruptBitPositions []int `json:"corrupt_bit_positions,omitempty"`
 	PacketsPerEpoch     uint32 `json:"packets_per_epoch,omitempty"`
 	MaxCorruptionEpochs int    `json:"max_corruption_epochs,omitempty"`
@@ -128,6 +130,8 @@ func ParseConfig(args []string) (*Config, error) {
 	fs.Float64Var(&cfg.LossRateOverride, "loss-rate", cfg.LossRateOverride, "fixed packet loss rate (0 = use Gilbert-Elliott)")
 	fs.IntVar(&cfg.CommitIntervalN, "commit-interval", cfg.CommitIntervalN, "HMAC verify every N packets (0 = every packet)")
 	fs.BoolVar(&cfg.CorruptionTest, "corruption-test", false, "run the single-bit corruption detection experiment (no network sweep)")
+	fs.BoolVar(&cfg.MembershipTest, "membership-test", false, "run the dynamic-membership live-join scenario (no network sweep)")
+	fs.IntVar(&cfg.MembershipJoins, "membership-joins", 8, "number of join broadcasts to simulate in the membership test")
 	fs.Var(&intList{c: &cfg.CorruptBitPositions}, "corrupt-bit-positions", "comma-separated bit positions to corrupt (default: all 0..255)")
 	fs.IntVar(&packetsPerEpoch, "packets-per-epoch", 64, "packets to check per epoch in corruption test")
 	fs.IntVar(&cfg.MaxCorruptionEpochs, "max-corruption-epochs", 256, "give-up epoch threshold in corruption test")
