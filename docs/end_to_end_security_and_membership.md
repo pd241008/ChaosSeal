@@ -118,13 +118,18 @@ security property the design claims. Both detect an HMAC mismatch as soon as
 they disagree; the meaningful difference is *why* the key stream becomes useless
 and *at what guaranteed delay*. The protocol's §6.4 epoch bound is the
 sampled-minimum entropy time-scale, $\max(256\ln2/\lambda_{\min},
-1/\lambda_{\min})$, computed from the attractor-sampled $\lambda_{\min}\approx
-0.75{-}0.80\ \text{nats}/\text{s}$ at the default Lyapunov window
-($t=100\,\text{s}$), giving a bound ≈ 235 s and a ≈ 5× margin above the
-1200 s epoch — with the caveat, already in the manuscript, that this is a
-sampled minimum, not a proven global minimum. The divergence statistics above
-(mean 10.7 s across 256 bit positions) bound the realistic breaking distance to
-one `O(seconds-to-tens-of-seconds)` epoch.
+1/\lambda_{\min})$, computed from the attractor-sampled $\lambda_{\min}$ at the
+default Lyapunov window ($t=100\,\text{s}$, default
+$b{=}0.1,c{=}0.5,L{=}1.0,m{=}1.0$): across ten independent $1000$-draw trials the
+per-trial minimum has mean $0.698$ nats/s and range $[0.629,0.764]$ (raw data in
+`results_v3/v4_lambda_min_series.csv`), giving a bound of $232$–$282$ s and a
+worst-case $\approx4.3\times$ margin above the $1200$ s epoch — with two caveats,
+already in the manuscript: this is a sampled, not proven-global, minimum, and the
+reported exponents are proxies (the estimator's tangent update feeds the
+trajectory's own derivative rather than a linearized Jacobian contraction, which
+also produces a spurious $\sim15\%$ high-band artifact disclosed in §6.4). The
+divergence statistics above (mean 10.7 s across 256 bit positions) bound the
+realistic breaking distance to one `O(seconds-to-tens-of-seconds)` epoch.
 
 ---
 

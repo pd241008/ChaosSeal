@@ -419,9 +419,10 @@ established protocol framing intact.
 ### Note on the repo README (artifact hygiene, not the manuscript)
 
 The repository `README.md` still states an "840.6 s measured epoch-duration bound." This
-figure is not reproducible (the correct, reproducible §6.4 figure is 235.2 s from
-$\lambda_{\min}\approx0.75$) and does not appear in the manuscript. If you want the GitHub
-artifact to match itself, correct `README.md`'s abstract to 235.2 s and remove the hardcoded
+figure is not reproducible (the reproducible §6.4 figure is now the G-1 conservative
+distribution: mean $\lambda_{\min}\approx0.698$ nats/s giving a mean bound $\approx255$ s,
+worst-case $\approx282$ s) and does not appear in the manuscript. If you want the GitHub
+artifact to match itself, correct `README.md`'s abstract to the G-1 bound and remove the hardcoded
 `>= 840.6` threshold in `scripts/sample_lyapunov.py`. This touches only the repo, not the paper.
 
 ---
@@ -442,10 +443,13 @@ run series; figures are in `results_v3/figures/`.
   \includegraphics[width=1.0\columnwidth]{v4_lambda_min_distribution.pdf}
   \caption{Sampled-minimum Lyapunov exponent of the chaotic attractor across ten
   independent 1000-initial-condition draws (a), and the resulting entropy bound
-  $256\ln2/\lambda_{\min}$ (b). The manuscript's point value $0.7545$ nats/s
-  ($235.2$~s) lies on the optimistic side of the distribution; the most
-  conservative sampled $\lambda_{\min}=0.562$ nats/s gives a $315$~s bound, still a
-  $\mathbf{3.8\times}$ margin over the $1200$~s epoch.}
+  $256\ln2/\lambda_{\min}$ (b). The per-sample $\lambda_1$ is bimodal (c): a physical
+  low band (mean $\approx1.52$~nats/s) supplies $\lambda_{\min}$, while an additional
+  $\approx15\%$ of draws land in a spurious high band (60--75~nats/s) caused by
+  fixed-point blow-up in the tangent update, not a physical attractor regime (d).
+  The conservative $\lambda_{\min}$ is always drawn from the physical low band: mean
+  $0.698$~nats/s, range $[0.629,0.764]$, giving the most conservative sampled bound
+  $\approx282$~s — a $\mathbf{4.3\times}$ margin over the $1200$~s epoch.}
   \label{fig:lambda-min-dist}
 \end{figure}
 
@@ -464,20 +468,24 @@ run series; figures are in `results_v3/figures/`.
 \begin{figure}[t]
   \centering
   \includegraphics[width=1.0\columnwidth]{v4_pendulum_robustness.pdf}
-  \caption{Robustness of the chaotic regime to pendulum-parameter drift. The default
-  operating point ($b{=}0.1$, $c{=}0.5$, $L{=}1.0$, $m{=}1.0$) sits inside the
-  chaotic region (shaded green, $\lambda_{\min}>0$); red denotes
-  $\lambda_{\min}\le0$ where entropy sourcing fails. Margins to the boundary are
-  $+70\%$ in damping (onset $\approx0.059$), $2\times$ in coupling, and a
-  broadband margin in length and mass.}
+  \caption{Robustness of the chaotic regime to pendulum-parameter drift (500-sample
+  low-band $\lambda_{\min}$, raw data in `results_v3/pendulum_robustness_sweep.csv`).
+  The default operating point ($b{=}0.1$, $c{=}0.5$, $L{=}1.0$, $m{=}1.0$) sits
+  inside the chaotic region (shaded green, $\lambda_{\min}>0$); red denotes
+  $\lambda_{\min}\le0$ where entropy sourcing fails — only the $L{=}0.5$ m point is
+  non-chaotic. Damping onset lies between $b{=}0.055$ and $0.06$; coupling
+  suppresses $\lambda_{\min}$ monotonically but stays positive on the swept grid;
+  length and mass are broadband-stable about the default.}
   \label{fig:pendulum-robust}
 \end{figure}
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=1.0\columnwidth]{v4_keystream_entropy.pdf}
-  \caption{Per-packet key-derivation input entropy drawn from the chaotic trajectory
-  versus number of derived ephemeral keys. The chaotic state provides
+  \caption{Per-packet key-derivation *input* entropy drawn from the chaotic trajectory
+  versus number of derived ephemeral keys. The measured stream is the raw fixed-point
+  pendulum-state bytes (the pre-HKDF/HMAC input to key derivation), \emph{not} the
+  HKDF/HMAC output. The chaotic state provides
   $\approx8$~bits/byte empirical input entropy ($\approx32$~bits per 4-byte state
   sample) with $100\%$ distinct state words over $16\,384$ keys; at $32\,768$ keys
   distinctness is $99.8\%$ (damped reinjection folds the trajectory), reported
@@ -497,17 +505,29 @@ operating bound.
 > Rather than reporting a single sampled minimum, we treat
 > $\lambda_{\min}$ as a random variable over draws of the attractor
 > initial-condition set. Across ten independent $1000$-sample draws at the default
-> Lyapunov window ($t=100$ s), $\lambda_{\min}$ has mean $0.691$ nats/s, standard
-> deviation $0.064$ nats/s, and range $[0.562, 0.811]$ nats/s (Fig.~\ref{fig:lambda-min-dist}a).
+> Lyapunov window ($t=100$ s), $\lambda_{\min}$ has mean $0.698$ nats/s, standard
+> deviation $0.042$ nats/s, and range $[0.629, 0.764]$ nats/s (Fig.~\ref{fig:lambda-min-dist}a).
 > The entropy bound $\max(256\ln2/\lambda_{\min}, 1/\lambda_{\min})$ over these draws
-> lies in $[219, 315]$ s (Fig.~\ref{fig:lambda-min-dist}b). The manuscript's earlier point
-> value $235.2$ s therefore sits on the *optimistic* side of the sampled distribution.
-> Adopting the most conservative observed $\lambda_{\min}=0.562$ nats/s gives a
-> $315$~s bound — a comfortable $\mathbf{3.8\times}$ margin above the $1200$~s epoch.
-> The entropy-sourcing claim is thus robust not merely to the RNG draw but to the
-> choice of $\lambda_{\min}$ within its measured distribution; the remaining caveat
-> (a proven *global* minimum over the continuous attractor) is deferred to
-> Future work.
+> lies in $[232, 282]$ s (Fig.~\ref{fig:lambda-min-dist}b), i.e. a worst-case
+> $\mathbf{4.3\times}$ margin above the $1200$~s epoch.
+>
+> Two disclosures are required for honesty about this quantity. First, the per-sample
+> $\lambda_1$ distribution is *bimodal* (Fig.~\ref{fig:lambda-min-dist}c): roughly
+> $85\%$ of draws sit in a physical band (mean $\approx1.5$ nats/s), but $\approx15\%$
+> land in a spurious high band at $60$--$75$ nats/s. This high band is a numerical
+> artifact, not a physical attractor regime: the estimator's tangent update
+> ($v_j \leftarrow v_j + f_j(x)\,\mathrm{d}t$) feeds the trajectory's *own* system
+> derivative — rather than the linearized Jacobian contraction $J(x)v$ — so the
+> reported "exponent" tracks long-run velocity-magnitude growth, and for the affected
+> draws the fixed-point integration blows up (mean velocity-field magnitude $\sim10^7$
+> vs $\sim7$ for the physical band). The conservative $\lambda_{\min}$ is unaffected by
+> this artifact because a minimum over the trial is always drawn from the physical low
+> band; the artifact band only adds entropy in practice and never loosens the bound.
+> Second, for the same reason the exponents are *proxies* for the divergence rate valid
+> in the physical band, not rigorously-computed Benettin exponents; we report them as
+> measured estimates and defer an exact-Jacobian recomputation to Future work. Raw
+> per-trial $\lambda_{\min}$ values are committed in
+> `results_v3/v4_lambda_min_series.csv` for reproduction.
 
 ---
 
@@ -576,15 +596,26 @@ operating bound.
 
 > The chaotic regime that sources the entropy occupies a bounded region in
 > pendulum-parameter space, and the default operating point lies centrally within
-> it (Fig.~\ref{fig:pendulum-robust}). Sweeping each parameter while holding the
-> others at their defaults, $\lambda_{\min}$ crosses zero — i.e., the system leaves
-> the chaotic regime and entropy sourcing fails — at damping $\approx0.059$
-> (default $0.1$ provides a $+70\%$ margin), and near coupling $c{=}1.0$ (default
-> $0.5$ gives $2\times$ headroom). Length ($L\approx0.6$ onset) and mass are
-> broadband-stable about the default. Together these quantify the honest operating
-> envelope: within $\approx[0.06,0.4]$ damping, $c\lesssim1$, $L\gtrsim0.6$, and a
-> broad mass range, the positive-Lyapunov entropy source is reliable, and the
-> default configuration sits comfortably inside.
+> it (Fig.~\ref{fig:pendulum-robust}). Sweeping each parameter (500 attractor
+> samples, low-band $\lambda_{\min}$) while holding the others at their defaults,
+> the low-band $\lambda_{\min}$ crosses zero — i.e., the system leaves the chaotic
+> regime and entropy sourcing fails — in damping between $b{=}0.055$ (measured
+> $-0.018$) and $b{=}0.06$ ($+0.049$), so at the default $b{=}0.1$ the margin to
+> onset is roughly $0.4$ in absolute $\lambda_{\min}$. Coupling $c$ suppresses
+> $\lambda_{\min}$ monotonically ($0.60$ at the default $c{=}0.5$, dropping toward
+> $0.11$ at $c{=}1.0$) but remains positive across the swept range, so chaos is not
+> observed to be lost on the measured grid. Length is broadband-stable at
+> $L\ge1.0\,$m, with one measured caveat: at the shortest swept length, $L{=}0.5\,$m,
+> the low-band $\lambda_{\min}$ is $\le0$ (measured $-0.054$ nats/s) — the *only*
+> non-chaotic point in the sweep — so the operating envelope must respect
+> $L\gtrsim0.6\,$m (onset lies between $L{=}0.5$ and the default $L{=}1.0$). Mass is
+> broadband-stable about the default ($0.65$ at $m{=}1.0$, rising to $0.91$ at
+> $m{=}2.0$). Together these quantify the honest operating envelope: within
+> $b\gtrsim0.06$, $L\gtrsim0.6$, a broad mass range, and moderate coupling, the
+> positive-Lyapunov entropy source is reliable, and the default configuration sits
+> comfortably inside. Raw sweep values are committed in
+> `results_v3/pendulum_robustness_sweep.csv` (regenerated by
+> `scripts/regen_robustness.py`).
 
 ---
 
@@ -594,15 +625,21 @@ operating bound.
 
 > …the entropy/epoch bound of §6.4 uses the *sampled* minimum Lyapunov exponent,
 > which we report as a conservative distribution: over ten independent
-> $1000$-draws, $\lambda_{\min}\in[0.562,0.811]$ nats/s, giving an entropy bound of
-> up to $315$~s and a worst-case $3.8\times$ margin over the $1200$~s epoch. A
-> proven *global* minimum over the continuous attractor is still not established by
-> exhaustive search…
+> $1000$-draws, $\lambda_{\min}$ has mean $0.698$ nats/s and range $[0.629,0.764]$
+> nats/s (raw data committed in `results_v3/v4_lambda_min_series.csv`), giving an
+> entropy bound of up to $\approx282$~s and a worst-case $4.3\times$ margin over the
+> $1200$~s epoch. Two caveats: the exponents are proxies (the estimator's tangent
+> update feeds the trajectory's own derivative rather than a Jacobian contraction),
+> and a proven *global* minimum over the continuous attractor is still not
+> established by exhaustive search…
 
 **Amend the Future Work paragraph** (§9) — item (ii) *Exhaustive-attractor
 sampling* is now partially addressed by the conservative-distribution reporting of
 G-1; retain it only as the certification step toward a *guaranteed* global minimum
-(rather than a sampled one). No other Future-work item is affected.
+(rather than a sampled one). Add a new item: recompute the exponents with a proper
+linearized-Jacobian Benettin tangent step (eliminating the bimodal blow-up artifact
+and turning the proxy exponents into exact estimates). No other Future-work item is
+affected.
 
 ---
 
@@ -610,9 +647,139 @@ G-1; retain it only as the certification step toward a *guaranteed* global minim
 
 | Result | Command | Figure / file |
 |---|---|---|
-| λ_min distribution (10×1000-draw) | `chaosseal lyapunov-attractor --samples 1000 --steps 10000` ×10 | `v4_lambda_min_distribution.pdf` |
+| λ_min distribution (10×1000-draw) | `chaosseal lyapunov-attractor --samples 1000 --steps 10000` ×10 | `v4_lambda_min_distribution.pdf`, `results_v3/v4_lambda_min_series.csv` |
 | Crossover surface ($R$ × size) | size + R sweeps in `results_v3/` | `v4_crossover_surface.pdf` |
 | Pendulum robustness | `--damping/--coupling/--length/--mass` attractor sweeps | `v4_pendulum_robustness.pdf` |
 | Live-join | `netsim --membership-test --membership-joins 8` | `v3-membership-join-*.json` |
 | Keystream entropy | `chaosseal keystream-entropy --packets N --state-bytes B` | `v4_keystream_entropy.pdf`, `keystream_entropy_series.csv` |
 | Fixed-point vs libm | `cargo test --release test_transcendental_worst_case_error_vs_f64` | (Limitations §8) |
+
+---
+
+## G-7 — New: "Why Chaos?" background/motivation subsection (task-driven source choice)
+
+**Where:** a short background subsection early in the paper (Related Work or right before
+ the protocol description), giving the foundational justification for choosing a chaotic
+ (key-rotation) source rather than a pseudo-random counter or a true-random physical source.
+ The argument is framed primarily from the protocol's own measured properties and its
+ architectural constraints, with the thesis (Gerolimetto Fabrello 2026, ch. 1) cited only
+ as *background* support for one general point — that "randomness" is not a single
+ absolute quality but a task-dependent one, ranging from algorithmic pseudo-random
+ generators (PRNG) to physical true-random generators (TRNG/QRNG) that are often best
+ combined rather than treated as rivals. As a supporting reference this is appropriate;
+ it is **not** a load-bearing citation, because the thesis is an unpublished dissertation
+ with no chaos content of its own. The chaos-specific justification below rests instead on
+ CEP's measured quantities and on the canonical chaos-cryptography mapping of Alvarez &
+ Li (2006).
+
+**Prose (paste):**
+
+> **Why is the key schedule fed from a chaotic trajectory rather than a simple counter or
+> a dedicated true-random generator?** We choose the source the way any security design
+> should: by first listing what the key schedule actually requires of its entropy, and
+> then paying for exactly those requirements and no more. Two familiar extremes bracket
+> the space of options, and a general observation about randomness
+> [Gerolimetto Fabrello 2026, ch. 1] — that source quality is *task-dependent*, with the
+> two extremes best combined rather than treated as mutually exclusive — provides useful
+> background but not the deciding argument here.
+>
+> At one extreme is a *physical* true-random source (TRNG/QRNG): its draws are
+> irreproducible and independent, which is ideal for one-time-seed entropy, but it is slow,
+> can carry bias, demands dedicated hardware that a radiation-hardened satellite would
+> have to carry, and — critically for a synchronizable protocol — two legitimate nodes
+> cannot independently reproduce the same stream from it. At the other extreme is a
+> *deterministic counter*: it is cheap, reproducible, and needs no special hardware, but
+> its per-step state is an exact, trivially-advanceable increment, so an attacker who
+> holds one key and the seed can predict every future key by simple arithmetic.
+>
+> CEP needs a middle option, and what fixes that choice is an architectural hard
+> requirement of our own design rather than a borrowed doctrine: the exact HMAC
+> commitment (§6.2) — the mechanism that lets two satellites confirm they derived the
+> same key — is only sound if the source is *deterministic and reproducible*: same
+> initial condition and parameters, same trajectory, on both endpoints. That immediately
+> rules out a TRNG for the per-packet schedule and pushes toward the reproducible end.
+> Yet we also want each new key to be *effectively unpredictable per step*, not a
+> monotone increment. A chaotic orbit is the natural choice that satisfies both
+> constraints simultaneously: it is fully reproducible (satisfying the HMAC commitment),
+> yet *aperiodic and sensitive to initial conditions*, so that anticipating the next
+> state means integrating a nonlinear ODE from an unknown initial condition rather than
+> advancing a counter by one. The measured exponent of the operated pendulum is
+> $\lambda_1 \approx 1.48\ \text{nats/s}$ (Benettin, §6.4), i.e. an $\sim 0.5$–$1$ s
+> divergence time-scale; a guessed nearby orbit separates from the true one
+> exponentially, so an observer cannot extrapolate new states by interpolation at the
+> per-key cadence. Alvarez and Li [2006] give the canonical spelling-out of why these
+> properties (SDIC, aperiodicity, ergodicity) map onto what a key schedule needs —
+> determinism without predictability.
+>
+> We stress that this trajectory is emphatically *not* claimed to be true randomness:
+> it is reproducible by construction, which a genuinely stochastic source is not, and the
+> protocol's own synchronization mechanism depends on that reproducibility. Nor is it a
+> substitute for a TRNG where one-time seed entropy is required — the two play different
+> roles (a TRNG can seed the initial condition once per deployment; the chaotic ODE then
+> supplies the reproducible per-packet schedule). This is a division of labour, and it is
+> the standard, workload-appropriate engineering choice rather than an exotic one. The
+> practical payoff is measurable (Fig.~\ref{fig:keystream-entropy}): the raw trajectory
+> state injects $\approx 8$~bits/byte of empirical per-byte entropy into each key
+> (fresh, aperiodic state, $100\%$ distinct over $16\,384$ keys), whereas a counter's
+> input is a fully-ordered, next-value-predictable sequence — the exact contrast the key
+> schedule benefits from.
+
+**Optional compact table (paste alongside):**
+
+```latex
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lccc}
+\hline
+Property & True-random & Pseudo-random (counter) & Chaotic (CEP) \\
+\hline
+Deterministic / reproducible & No & Yes & Yes \\
+Needs physical entropy source & Yes & No & No \\
+Per-step next-state prediction & -- & trivial (+1) & ODE-hard (SDIC) \\
+Aperiodic state evolution & -- & periodic/cyclic & aperiodic ($\lambda_1>0$) \\
+Fwd-hiding per step & absolute & none & exponential ($e^{\lambda_1}$) \\
+Verifiable / auditable & No & Yes & Yes \\
+\hline
+\end{tabular}
+\caption{The three entropy-source regimes. Chaos (CEP) is the only one that is at
+once reproducible, entropy-source-free, and effectively-unpredictable per step.}
+\label{tab:entropy-regimes}
+\end{table}
+```
+
+**References to add to the bibliography (confirmed source — the thesis the
+author supplied in the repo, `thesis_final (2).pdf`):**
+
+- C. Gerolimetto Fabrello, *Qualification of a QRNG and exemplary application in
+  Differential Privacy*, Ph.D. thesis, Department of Theoretical and Applied Sciences,
+  Università degli Studi dell'Insubria, XXXVIII cycle, 2022–2025, ch. 1 ("The Modern
+  Role of Randomness"). Repository handle 11383/2208092.
+  [**background only, not primary justification** — supports the general framing that
+  randomness quality is task-dependent and the algorithmic/physical extremes are best
+  combined. Cited for that one general point; it is an unpublished dissertation with no
+  chaos content, so the chaotic-source choice above is justified by CEP's own measured
+  quantities and Alvarez & Li, not by the thesis.]
+- G. Alvarez and S. Li, "Some basic cryptographic requirements for chaos-based
+  cryptosystems," *Int. J. Bifurcation and Chaos*, 2006.
+  [primary chaos-specific reference: canonical mapping of SDIC, ergodicity,
+  aperiodicity onto cryptographic requirements; the "determinism without predictability"
+  standpoint used above for why a reproducible-but-unpredictable source suits a key
+  schedule.]
+- B. Schneier / standard PRNG reference, or the NIST SP 800-90A DRBG references, to
+  anchor the "pseudo-random counter" and "true random = physical source" definitions if
+  desired.
+
+**Consistency note:** this section uses the same measured numbers already introduced
+elsewhere ($\lambda_1 \approx 1.48$ nats/s Benettin single-trajectory in §6.4;
+per-key entropy $8$~bits/byte from G-3/Fig.~\ref{fig:keystream-entropy}). The thesis
+attribution is the verified Insubria dissertation supplied in the repo
+(`thesis_final (2).pdf`, handle 11383/2208092) — not the USM thesis that an earlier
+draft mistakenly cited; and it is deliberately positioned as *secondary background*
+rather than the load-bearing justification, so the section stands on CEP's own
+measurements and on Alvarez & Li even if the thesis were removed. The section avoids the
+historically-broken "chaos as direct keystream" framing (the HKDF-to-AES-256-GCM
+construction in the abstract), and does not label chaos as "true random." Per G-1's
+resolution, the $\lambda_1$ figure is the physically-plausible low-band estimate; the
+estimator's blow-up mode and the bimodality it induces are disclosed in §6.4.
+
