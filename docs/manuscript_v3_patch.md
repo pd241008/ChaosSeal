@@ -528,6 +528,19 @@ operating bound.
 > measured estimates and defer an exact-Jacobian recomputation to Future work. Raw
 > per-trial $\lambda_{\min}$ values are committed in
 > `results_v3/v4_lambda_min_series.csv` for reproduction.
+>
+> \textbf{Footnote:} the three distinct numbers are not inconsistent. Each sweep step in
+> the size/loss/eval experiments (e.g. \texttt{results\_v3/v3-size-sweep-1024.json})
+> records a \emph{per-run point estimate}, $\hat{\lambda}_1=1.4808$~nats/s with
+> $\mathrm{dt\_bound}=119.8$~s from that run's single $1000$-sample draw; those values
+> are used only operationally, to certify non-degeneracy ($\hat{\lambda}_1>0$) within the
+> sweep. The formal epoch-bound argument instead uses the \emph{resampled distribution} of
+> the sampled \emph{minimum} $\lambda_{\min}$ over ten independent draws
+> ($0.698\pm0.042$~nats/s, bound in $[232,282]$~s) quoted here and in
+> Fig.~\ref{fig:lambda-min-dist}. A point estimate of the largest exponent ($\lambda_1$)
+> from one run (here $\approx120$~s) is not directly comparable to a conservative
+> worst-case sampled-minimum epoch bound, so the three figures are consistent by
+> construction.
 
 ---
 

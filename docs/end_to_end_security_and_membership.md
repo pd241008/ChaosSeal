@@ -128,6 +128,12 @@ already in the manuscript: this is a sampled, not proven-global, minimum, and th
 reported exponents are proxies (the estimator's tangent update feeds the
 trajectory's own derivative rather than a linearized Jacobian contraction, which
 also produces a spurious $\sim15\%$ high-band artifact disclosed in §6.4). The
+$232$–$282$ s range here is the resampled sampled-minimum bound; it is *not* the same
+number as the per-run point estimates in each sweep JSON (e.g.
+`results_v3/v3-size-sweep-1024.json` logs $\hat{\lambda}_1=1.4808$ nats/s,
+$\mathrm{dt\_bound}=119.8$ s from that run's single draw) — those are $\lambda_1$, not
+$\lambda_{\min}$, used only operationally to certify the attractor is non-degenerate,
+so the two figures are consistent rather than contradictory. The
 divergence statistics above (mean 10.7 s across 256 bit positions) bound the
 realistic breaking distance to one `O(seconds-to-tens-of-seconds)` epoch.
 
