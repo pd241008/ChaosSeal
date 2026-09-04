@@ -33,13 +33,19 @@ def load_baseline_goodput(run_file, name):
 def lambda_min_distribution():
     # Measured per-trial sampled-minimum of the dominant Lyapunov exponent
     # (10 independent attractor runs, 1000 samples each, steps=10000, theta in [-pi,pi]).
-    lambda_mins = np.array(
-        [0.7437, 0.8114, 0.6335, 0.7259, 0.7122, 0.6581,
-         0.5624, 0.6885, 0.6673, 0.7076]
-    )
+    # Raw per-trial values are committed (not hardcoded) in
+    # results_v3/v4_lambda_min_series.csv for reproducibility. See the G-1 note in
+    # the manuscript: the per-sample lambda1 distribution is bimodal — a physical
+    # low band (mean ~1.4-1.5 nats/s) plus a spurious high band (~60-75 nats/s,
+    # ~14% of samples) that is a fixed-point blow-up artifact of the estimator's
+    # tangent update, not a physical attractor regime. lambda_min is the per-trial
+    # minimum, which is always drawn from the physical low band.
+    import csv as _csv
+    rows = list(_csv.DictReader(open(RESULTS / "v4_lambda_min_series.csv")))
+    lambda_mins = np.array([float(r["lambda_min_nats_per_s"]) for r in rows])
     dts = 256.0 * math.log(2.0) / lambda_mins
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(11, 7.6))
     fig.suptitle(
         "Generalized entropy bound: $\\lambda_{\\min}$ is a sampled distribution, "
         "not a point value",
@@ -62,10 +68,37 @@ def lambda_min_distribution():
                 label="epoch 1200 s")
     ax2.set_xlabel("entropy bound $\\mathrm{dt}_{\\mathrm{bound}} = 256\\ln2/\\lambda_{\\min}$ (s)")
     ax2.set_ylabel("trial count")
-    ax2.set_title("(b) entropy bound is conservative (≥218 s, ≤315 s)")
+    ax2.set_title("(b) entropy bound is conservative")
     ax2.legend(fontsize=8)
 
-    fig.tight_layout(rect=[0, 0, 1, 0.94])
+    # (c) per-sample lambda1 is bimodal: the physical low band supplies lambda_min;
+    # the ~14% high band is an estimator blow-up artifact, disclosed here.
+    lam = np.array([float(r["lambda_min_nats_per_s"]) for r in rows])
+    maxs = np.array([float(r["lambda_max_nats_per_s"]) for r in rows])
+    hfracs = np.array([float(r["highband_frac"]) for r in rows])
+    lows = np.array([float(r["lowband_mean_nats_per_s"]) for r in rows])
+    ax3.bar([0], [lows.mean() - lam.min()], color="tab:blue", alpha=0.7)
+    ax3.bar([1], [maxs.mean() - lows.mean()], color="tab:red", alpha=0.5)
+    ax3.set_xticks([0, 1])
+    ax3.set_xticklabels(["physical\nlow band", "artefact\nhigh band"])
+    ax3.set_ylabel("per-sample $\\lambda_1$ (nats/s)")
+    ax3.set_title(f"(c) per-sample $\\lambda_1$ is bimodal "
+                  f"({hfracs.mean()*100:.0f}% in artefact band)")
+    ax3.text(0, lows.mean(), f"low-band\nmean {lows.mean():.2f}", ha="center", fontsize=8)
+    ax3.text(1, maxs.mean(), f"artefact\nmean {maxs.mean():.0f}", ha="center", fontsize=8)
+
+    # (d) honesty callout: lambda_min uses the physical low band
+    ax4.axis("off")
+    ax4.text(0.02, 0.5,
+        "Per-sample $\\lambda_1$ is bimodal.\n"
+        f"~{hfracs.mean()*100:.0f}% of draws land in a spurious high band\n"
+        "(60\u201375 nats/s) caused by fixed-point blow-up in the\ntangent update, "
+        "not a physical attractor. The conservative\n$\\lambda_{\\min}$ is always drawn "
+        "from the physical low band\n(mean $\\approx {lows.mean():.2f}$ nats/s), so the "
+        "entropy bound\nbelow is unaffected by, and independent of, the\nartefact band.",
+        fontsize=9, va="center", family="monospace")
+
+    fig.tight_layout(rect=[0, 0, 1, 0.96])
     fig.savefig(FIG / "v4_lambda_min_distribution.pdf")
     plt.close(fig)
     print("saved v4_lambda_min_distribution.pdf")
@@ -73,6 +106,8 @@ def lambda_min_distribution():
           f"min {lambda_mins.min():.4f} max {lambda_mins.max():.4f}")
     print(f"dt_bound mean {dts.mean():.1f} min {dts.min():.1f} max {dts.max():.1f} s "
           f"-> worst margin {1200/dts.max():.1f}x")
+    print(f"per-trial highband frac mean {hfracs.mean():.3f} | "
+          f"low-band lambda1 mean {lows.mean():.3f} | artefact max {maxs.mean():.1f}")
 
 
 def crossover_surface():
@@ -145,28 +180,36 @@ def pendulum_robustness():
 
     The default operating point (damping=0.1, coupling=0.5, L=1.0, m=1.0) is
     centrally located in the chaotic region of parameter space. Sweeping each
-    parameter (500-1000 attractor samples) traces the chaos boundary and the
-    resulting entropy bound dt_bound = 256*ln2/lambda_min.
+    parameter (500 attractor samples, low-band lambda_min) traces the chaos
+    boundary. Raw data is measured and committed in
+    results_v3/pendulum_robustness_sweep.csv (regenerate via
+    scripts/regen_robustness.py), not hardcoded.
     """
+    import csv as _csv
+    rows = list(_csv.DictReader(open(RESULTS / "pendulum_robustness_sweep.csv")))
+    by_param = {}
+    for r in rows:
+        by_param.setdefault(r["parameter"], []).append(float(r["lowband_lambda_min"]))
+
     x = {
         "damping": {
             "vals": [0.055, 0.06, 0.07, 0.08, 0.09, 0.10, 0.2, 0.4],
-            "lmin": [-0.010, 0.102, 0.188, 0.282, 0.484, 0.668, 2.580, 3.795],
+            "lmin": by_param["damping"],
             "xlabel": "damping $b$", "default": 0.1,
         },
         "coupling": {
             "vals": [0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0],
-            "lmin": [1.137, 1.047, 0.870, 0.739, 0.641, 0.317, 0.012],
+            "lmin": by_param["coupling"],
             "xlabel": "coupling $c$", "default": 0.5,
         },
         "length": {
             "vals": [0.5, 1.0, 2.0, 4.0],
-            "lmin": [-0.039, 0.894, 1.246, 1.304],
+            "lmin": by_param["length"],
             "xlabel": "length $L$", "default": 1.0,
         },
         "mass": {
             "vals": [0.5, 1.0, 1.5, 2.0],
-            "lmin": [0.099, 0.790, 1.005, 0.947],
+            "lmin": by_param["mass"],
             "xlabel": "mass $m$", "default": 1.0,
         },
     }
@@ -189,11 +232,12 @@ def pendulum_robustness():
     fig.savefig(FIG / "v4_pendulum_robustness.pdf")
     plt.close(fig)
     print("saved v4_pendulum_robustness.pdf")
-    print("default safety margins:")
-    print("  damping: chaos onset ~0.059, default 0.1 -> +70%")
-    print("  coupling: chaos lost near 1.0, default 0.5 -> 2x headroom")
-    print("  length: chaos onset ~0.6, default 1.0")
-    print("  mass: weakly coupled; default 1.0 deep inside")
+    dmin = x["damping"]["lmin"]; cm = x["coupling"]["lmin"]; ln = x["length"]["lmin"]
+    print("default safety margins (500-sample low-band min):")
+    print(f"  damping: onset in (0.055,0.06); default 0.1 -> {dmin[5]:.3f}")
+    print(f"  coupling: drops toward 1.0 but stays >0 on grid; default 0.5 -> {cm[3]:.3f}")
+    print(f"  length: L=0.5 non-chaotic ({ln[0]:.3f}); default 1.0 -> {ln[1]:.3f}")
+    print(f"  mass: default 1.0 -> {x['mass']['lmin'][1]:.3f}; broadband")
 
 
 if __name__ == "__main__":
