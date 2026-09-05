@@ -83,8 +83,11 @@ impl MultiPendulum {
     /// Matches the exact arithmetic of `derivatives` (including the coupling
     /// convention: only the left neighbor `i-1` contributes a non-zero term,
     /// since the `j == i` branch is the identically-zero self term
-    /// `(theta_i - theta_i)`). Row `n + i` is
-    /// `d(omega_i')/dx` scaled by `1/inertia`.
+    /// `(theta_i - theta_i)`). Two asymmetries of `derivatives` are preserved:
+    /// the damping term `-b_i * omega_i` is added *outside* the `1/inertia`
+    /// torque division, whereas the gravity and coupling torques are added as
+    /// `(torque_g + torque_c) / inertia`. Hence `d(omega_i')/d(omega_i) = -b_i`
+    /// while the theta derivatives all carry `1/inertia`.
     pub fn jacobian(&self, state: &[Q32_32]) -> Vec<Vec<Q32_32>> {
         let n = self.masses.len();
         let dim = self.dimension();
@@ -103,25 +106,29 @@ impl MultiPendulum {
                 continue;
             }
 
-            // d(omega_i')/d(omega_i) = -damping[i] / inertia
-            jac[n + i][n + i] = -self.damping[i] / inertia;
+            // d(omega_i')/d(omega_i) = -damping[i].
+            // The damping term is NOT inside the 1/inertia division in
+            // derivatives(), so it must not be divided by inertia.
+            jac[n + i][n + i] = -self.damping[i];
 
             // d(omega_i')/d(theta_i):
             //   torque_g  = g * (m_i*2) * (L_i/2) * sin(theta_i)
-            //   => derivative = g * (m_i*2) * (L_i/2) * cos(theta_i)
+            //   => derivative = g * (m_i*2) * (L_i/2) * cos(theta_i), then /inertia
             let m2 = self.masses[i] * two;
             let lh = self.lengths[i] * half;
             let mut d_om = g * m2 * lh * state[i].cos();
 
             // coupling tau_c = c_{i-1} * ((theta_i - theta_{i-1}) / d) * 0.1
-            // for i >= 1; d(tau_c)/d(theta_i) = +c*0.1/d,
-            // d(tau_c)/d(theta_{i-1}) = -c*0.1/d.
+            // for i >= 1; torque_c is inside the /inertia division in
+            // derivatives(), so both entries carry 1/inertia:
+            //   d(tau_c)/d(theta_i)   = +c*0.1/d
+            //   d(tau_c)/d(theta_{i-1}) = -c*0.1/d
             if i >= 1 {
                 let coupling = self.couplings[i - 1];
                 let d = self.lengths[i].min(self.lengths[i - 1]);
                 let coeff = coupling * tenth / d;
                 d_om = d_om + coeff;
-                jac[n + i][i - 1] = -coeff;
+                jac[n + i][i - 1] = -coeff / inertia;
             }
 
             jac[n + i][i] = d_om / inertia;
