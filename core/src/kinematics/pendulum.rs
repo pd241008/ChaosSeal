@@ -58,4 +58,57 @@ impl MultiPendulum {
 
         deriv
     }
+
+    /// Jacobian of `derivatives` with respect to the state
+    /// `x = [theta_0..theta_{n-1}, omega_0..omega_{n-1}]`.
+    ///
+    /// Matches the exact arithmetic of `derivatives` (including the coupling
+    /// convention: only the left neighbor `i-1` contributes a non-zero term,
+    /// since the `j == i` branch is the identically-zero self term
+    /// `(theta_i - theta_i)`). Row `n + i` is
+    /// `d(omega_i')/dx` scaled by `1/inertia`.
+    pub fn jacobian(&self, state: &[Q32_32]) -> Vec<Vec<Q32_32>> {
+        let n = self.masses.len();
+        let dim = self.dimension();
+        let mut jac = vec![vec![Q32_32::ZERO; dim]; dim];
+        let g = Self::gravity();
+        let two = Q32_32::from_f64(2.0);
+        let half = Q32_32::from_f64(0.5);
+        let tenth = Q32_32::from_f64(0.1);
+
+        for i in 0..n {
+            // theta_i' = omega_i  =>  d(theta_i')/d(omega_i) = 1
+            jac[i][n + i] = Q32_32::ONE;
+
+            let inertia = self.masses[i] * self.lengths[i] * self.lengths[i];
+            if inertia == Q32_32::ZERO {
+                continue;
+            }
+
+            // d(omega_i')/d(omega_i) = -damping[i] / inertia
+            jac[n + i][n + i] = -self.damping[i] / inertia;
+
+            // d(omega_i')/d(theta_i):
+            //   torque_g  = g * (m_i*2) * (L_i/2) * sin(theta_i)
+            //   => derivative = g * (m_i*2) * (L_i/2) * cos(theta_i)
+            let m2 = self.masses[i] * two;
+            let lh = self.lengths[i] * half;
+            let mut d_om = g * m2 * lh * state[i].cos();
+
+            // coupling tau_c = c_{i-1} * ((theta_i - theta_{i-1}) / d) * 0.1
+            // for i >= 1; d(tau_c)/d(theta_i) = +c*0.1/d,
+            // d(tau_c)/d(theta_{i-1}) = -c*0.1/d.
+            if i >= 1 {
+                let coupling = self.couplings[i - 1];
+                let d = self.lengths[i].min(self.lengths[i - 1]);
+                let coeff = coupling * tenth / d;
+                d_om = d_om + coeff;
+                jac[n + i][i - 1] = -coeff;
+            }
+
+            jac[n + i][i] = d_om / inertia;
+        }
+
+        jac
+    }
 }

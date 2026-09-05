@@ -74,7 +74,7 @@ fn main() {
                 state[i] = Q32_32::from_f64(0.1 * (i as f64 + 1.0));
             }
             let estimator = LyapunovEstimator { steps, ..Default::default() };
-            let lambda1 = estimator.estimate(&|t, s| pendulum.derivatives(t, s), Q32_32::ZERO, &state);
+            let lambda1 = estimator.estimate(&|t, s| pendulum.derivatives(t, s), &|s| pendulum.jacobian(s), Q32_32::ZERO, &state);
             ResultJson {
                 success: true,
                 output: serde_json::json!({
@@ -112,7 +112,7 @@ fn main() {
                 }
                 
                 let estimator = LyapunovEstimator { steps, ..Default::default() };
-                let lambda1 = estimator.estimate(&|t, s| pendulum.derivatives(t, s), Q32_32::ZERO, &state);
+                let lambda1 = estimator.estimate(&|t, s| pendulum.derivatives(t, s), &|s| pendulum.jacobian(s), Q32_32::ZERO, &state);
                 lambda1s.push(lambda1.to_f64());
             }
             

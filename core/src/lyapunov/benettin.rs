@@ -20,12 +20,15 @@ impl Default for LyapunovEstimator {
 }
 
 impl LyapunovEstimator {
-    pub fn estimate<F>(&self, system: &F, t0: Q32_32, state: &[Q32_32]) -> Q32_32
+    pub fn estimate<F, G>(&self, system: &F, jacobian: &G, t0: Q32_32, initial_state: &[Q32_32]) -> Q32_32
     where
         F: Fn(Q32_32, &[Q32_32]) -> Vec<Q32_32>,
+        G: Fn(&[Q32_32]) -> Vec<Vec<Q32_32>>,
     {
-        let mut traj = state.to_vec();
-        let mut tangent = vec![vec![Q32_32::ZERO; self.tangent_dim]; self.tangent_dim];
+        let mut traj = initial_state.to_vec();
+        let state_dim = initial_state.len();
+        assert!(self.tangent_dim <= state_dim, "tangent_dim must not exceed the phase-space dimension");
+        let mut tangent = vec![vec![Q32_32::ZERO; state_dim]; self.tangent_dim];
 
         for i in 0..self.tangent_dim {
             tangent[i][i] = Q32_32::ONE;
@@ -34,7 +37,7 @@ impl LyapunovEstimator {
         let mut log_sum = vec![Q32_32::ZERO; self.tangent_dim];
 
         for step in 0..self.steps {
-            let (nt, ns) = {
+            let (_nt, ns) = {
                 let dt = self.dt;
                 let mut t = t0 + Q32_32::from_f64(step as f64) * dt;
                 let mut s = traj.clone();
@@ -62,12 +65,20 @@ impl LyapunovEstimator {
 
             traj = ns;
 
+            let jac = jacobian(&traj);
             for i in 0..self.tangent_dim {
                 let tv = tangent[i].clone();
-                let d = system(nt, &traj);
-                let mut new_tv = vec![Q32_32::ZERO; tv.len()];
-                for j in 0..tv.len() {
-                    new_tv[j] = tv[j] + d[j] * self.dt;
+                let mut jv = vec![Q32_32::ZERO; state_dim];
+                for j in 0..state_dim {
+                    let mut acc = Q32_32::ZERO;
+                    for k in 0..state_dim {
+                        acc = acc + jac[j][k] * tv[k];
+                    }
+                    jv[j] = acc;
+                }
+                let mut new_tv = vec![Q32_32::ZERO; state_dim];
+                for j in 0..state_dim {
+                    new_tv[j] = tv[j] + jv[j] * self.dt;
                 }
                 tangent[i] = new_tv;
             }

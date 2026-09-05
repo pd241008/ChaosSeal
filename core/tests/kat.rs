@@ -69,8 +69,8 @@ fn test_determinism_lyapunov() {
     let mut state = vec![Q32_32::ZERO; pendulum.dimension()];
     for i in 0..3 { state[i] = Q32_32::from_f64(0.1 * (i as f64 + 1.0)); }
     let estimator = LyapunovEstimator { steps: 1000, ..Default::default() };
-    let l1 = estimator.estimate(&|t, s| pendulum.derivatives(t, s), Q32_32::ZERO, &state);
-    let l1_again = estimator.estimate(&|t, s| pendulum.derivatives(t, s), Q32_32::ZERO, &state);
+    let l1 = estimator.estimate(&|t, s| pendulum.derivatives(t, s), &|s| pendulum.jacobian(s), Q32_32::ZERO, &state);
+    let l1_again = estimator.estimate(&|t, s| pendulum.derivatives(t, s), &|s| pendulum.jacobian(s), Q32_32::ZERO, &state);
     assert_eq!(l1.to_bits(), l1_again.to_bits(), "Lyapunov estimator not deterministic");
 }
 

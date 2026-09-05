@@ -82,9 +82,86 @@ fn test_determinism_lyapunov() {
     let mut state = vec![Q32_32::ZERO; pendulum.dimension()];
     for i in 0..3 { state[i] = Q32_32::from_f64(0.1 * (i as f64 + 1.0)); }
     let estimator = LyapunovEstimator { steps: 1000, ..Default::default() };
-    let l1 = estimator.estimate(&|t, s| pendulum.derivatives(t, s), &|s| pendulum.apply_reinjection(s), Q32_32::ZERO, &state);
-    let l1_again = estimator.estimate(&|t, s| pendulum.derivatives(t, s), &|s| pendulum.apply_reinjection(s), Q32_32::ZERO, &state);
+    let l1 = estimator.estimate(&|t, s| pendulum.derivatives(t, s), &|s| pendulum.jacobian(s), &|s| pendulum.apply_reinjection(s), Q32_32::ZERO, &state);
+    let l1_again = estimator.estimate(&|t, s| pendulum.derivatives(t, s), &|s| pendulum.jacobian(s), &|s| pendulum.apply_reinjection(s), Q32_32::ZERO, &state);
     assert_eq!(l1.to_bits(), l1_again.to_bits(), "Lyapunov estimator not deterministic");
+}
+
+fn finite_difference_jacobian(pendulum: &MultiPendulum, state: &[Q32_32], delta: f64) -> Vec<Vec<f64>> {
+    let dim = state.len();
+    let mut jac = vec![vec![0f64; dim]; dim];
+    let dq = Q32_32::from_f64(delta);
+    for c in 0..dim {
+        let mut sp = state.to_vec();
+        let mut sm = state.to_vec();
+        sp[c] = sp[c] + dq;
+        sm[c] = sm[c] - dq;
+        let fp = pendulum.derivatives(Q32_32::ZERO, &sp);
+        let fm = pendulum.derivatives(Q32_32::ZERO, &sm);
+        for r in 0..dim {
+            jac[r][c] = (fp[r].to_f64() - fm[r].to_f64()) / (2.0 * delta);
+        }
+    }
+    jac
+}
+
+#[test]
+fn test_jacobian_matches_finite_difference() {
+    let pendulum = MultiPendulum::new(3, Q32_32::from_f64(1.0), Q32_32::from_f64(1.0), Q32_32::from_f64(0.1), Q32_32::from_f64(0.5));
+    let state: Vec<Q32_32> = [0.5, -0.7, 0.3, 0.9, -0.4, 0.2]
+        .iter().map(|&v| Q32_32::from_f64(v)).collect();
+    let analytic = pendulum.jacobian(&state);
+    let fd = finite_difference_jacobian(&pendulum, &state, 1e-3);
+    let mut worst = 0f64;
+    let mut worst_rc = (0usize, 0usize);
+    for r in 0..state.len() {
+        for c in 0..state.len() {
+            let a = analytic[r][c].to_f64();
+            let d = fd[r][c];
+            let err = (a - d).abs();
+            let scale = a.abs().max(1e-6);
+            if err / scale > worst {
+                worst = err / scale;
+                worst_rc = (r, c);
+            }
+            assert!(err <= scale * 0.02 + 1e-4,
+                "jacobian[{r}][{c}]: analytic {a:.6} vs finite-diff {d:.6} (rel {:.4})",
+                err / scale);
+        }
+    }
+    eprintln!("jacobian finite-difference check passed; worst rel error {worst:.4} at {worst_rc:?}");
+}
+
+#[test]
+fn test_tangent_product_identity() {
+    // J(x)v must equal the directional derivative (f(x+eps v) - f(x))/eps:
+    // the core identity the Benettin tangent update relies on.
+    let pendulum = MultiPendulum::new(3, Q32_32::from_f64(1.0), Q32_32::from_f64(1.0), Q32_32::from_f64(0.1), Q32_32::from_f64(0.5));
+    let state: Vec<Q32_32> = [0.5, -0.7, 0.3, 0.9, -0.4, 0.2]
+        .iter().map(|&v| Q32_32::from_f64(v)).collect();
+    let v: Vec<f64> = [0.1, -0.5, 0.8, 0.3, -0.2, 0.6].to_vec();
+    let jac = pendulum.jacobian(&state);
+    let mut jv = vec![0f64; state.len()];
+    for r in 0..state.len() {
+        for c in 0..state.len() {
+            jv[r] += jac[r][c].to_f64() * v[c];
+        }
+    }
+    let eps = 1e-3;
+    let mut sp = state.to_vec();
+    let mut sm = state.to_vec();
+    for c in 0..state.len() {
+        sp[c] = sp[c] + Q32_32::from_f64(eps * v[c]);
+        sm[c] = sm[c] - Q32_32::from_f64(eps * v[c]);
+    }
+    let fp = pendulum.derivatives(Q32_32::ZERO, &sp);
+    let fm = pendulum.derivatives(Q32_32::ZERO, &sm);
+    for r in 0..state.len() {
+        let fd_directional = (fp[r].to_f64() - fm[r].to_f64()) / (2.0 * eps);
+        assert!((jv[r] - fd_directional).abs() <= jv[r].abs().max(1e-6) * 0.02 + 1e-4,
+            "J*v[{r}]: {:.6} vs directional FD {:.6}", jv[r], fd_directional);
+    }
+    eprintln!("tangent product identity Jv = (f(x+ev)-f(x-ev))/2e verified");
 }
 
 #[test]

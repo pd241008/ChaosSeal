@@ -36,7 +36,7 @@ pub extern "C" fn chaosseal_compute_lambda1(
         state[i] = Q32_32::from_f64(0.1 * (i as f64 + 1.0));
     }
     let estimator = LyapunovEstimator { steps, ..Default::default() };
-    let lambda1 = estimator.estimate(&|t, s| pendulum.derivatives(t, s), &|s| pendulum.apply_reinjection(s), Q32_32::ZERO, &state);
+    let lambda1 = estimator.estimate(&|t, s| pendulum.derivatives(t, s), &|s| pendulum.jacobian(s), &|s| pendulum.apply_reinjection(s), Q32_32::ZERO, &state);
 
     let cmsg = CString::new("ok").unwrap();
     CChaosSealResult {
