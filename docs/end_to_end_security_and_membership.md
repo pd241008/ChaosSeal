@@ -1,5 +1,15 @@
 # CEP End-to-End Security Composition & Dynamic Membership Cost Model
 
+> **METASTABILITY CAVEAT (pending independent verification).** The Lyapunov /
+> entropy material in this document (Part H: λ₁, Lyapunov time-scales, λ_min
+> attractor numbers) describes the **bounded-swing transient** of a model whose
+> ODE is not a bounded chaotic attractor in exact arithmetic (unbounded
+> parabolic coupling → deterministic energy escape; worst-case escape ~18 s over
+> random ICs, ~127 s for the deterministic cold-start IC). Fixed-point Q32.32
+> long-horizon "attractors" are saturation artifacts. See
+> `docs/design_note_metastability.md` and `scripts/verify_metastability.py`.
+> Do not use as-is for final security numbers until the verifier confirms.
+
 **Supplementary material addressing the two Tier-3 gaps flagged for strengthening:
 (1) composing the BEE collusion-resistance argument with the data-layer
 IND-CPA/INT-CTXT argument into a single end-to-end proof; (2) bounding the cost

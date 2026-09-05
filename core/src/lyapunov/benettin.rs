@@ -25,6 +25,16 @@ impl LyapunovEstimator {
         F: Fn(Q32_32, &[Q32_32]) -> Vec<Q32_32>,
         G: Fn(&[Q32_32]) -> Vec<Vec<Q32_32>>,
     {
+        self.estimate_spectrum(system, jacobian, t0, initial_state)[0]
+    }
+
+    /// Full top-`tangent_dim` Lyapunov spectrum, not just the dominant
+    /// exponent (see core_v2/src/lyapunov/benettin.rs for rationale).
+    pub fn estimate_spectrum<F, G>(&self, system: &F, jacobian: &G, t0: Q32_32, initial_state: &[Q32_32]) -> Vec<Q32_32>
+    where
+        F: Fn(Q32_32, &[Q32_32]) -> Vec<Q32_32>,
+        G: Fn(&[Q32_32]) -> Vec<Vec<Q32_32>>,
+    {
         let mut traj = initial_state.to_vec();
         let state_dim = initial_state.len();
         assert!(self.tangent_dim <= state_dim, "tangent_dim must not exceed the phase-space dimension");
@@ -123,7 +133,6 @@ impl LyapunovEstimator {
         }
 
         let total_t = Q32_32::from_f64(self.steps as f64) * self.dt;
-        let lambda1 = log_sum[0] / total_t;
-        lambda1
+        log_sum.iter().map(|l| *l / total_t).collect()
     }
 }
