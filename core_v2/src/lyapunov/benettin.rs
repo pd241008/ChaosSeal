@@ -24,7 +24,22 @@ impl LyapunovEstimator {
     where
         F: Fn(Q32_32, &[Q32_32]) -> Vec<Q32_32>,
         G: Fn(&[Q32_32]) -> Vec<Vec<Q32_32>>,
-        R: Fn(&mut [Q32_32]),
+        R: Fn(&mut [Q32_32]) + ?Sized,
+    {
+        self.estimate_spectrum(system, jacobian, reinject, t0, initial_state)[0]
+    }
+
+    /// Full top-`tangent_dim` Lyapunov spectrum `[lambda_1, ..]`, not just the
+    /// dominant exponent: the Gram-Schmidt reorthonormalization already
+    /// accumulates `log_sum` for every tangent vector, so indices beyond 0 are
+    /// computed for free. The Kolmogorov-Sinai entropy requires the *sum of the
+    /// positive* exponents, so single-`lambda1` use understates the entropy rate
+    /// whenever `tangent_dim > 1` degrees are expanding.
+    pub fn estimate_spectrum<F, G, R>(&self, system: &F, jacobian: &G, reinject: &R, t0: Q32_32, initial_state: &[Q32_32]) -> Vec<Q32_32>
+    where
+        F: Fn(Q32_32, &[Q32_32]) -> Vec<Q32_32>,
+        G: Fn(&[Q32_32]) -> Vec<Vec<Q32_32>>,
+        R: Fn(&mut [Q32_32]) + ?Sized,
     {
         let mut traj = initial_state.to_vec();
         let state_dim = initial_state.len();
@@ -125,7 +140,6 @@ impl LyapunovEstimator {
         }
 
         let total_t = Q32_32::from_f64(self.steps as f64) * self.dt;
-        let lambda1 = log_sum[0] / total_t;
-        lambda1
+        log_sum.iter().map(|l| *l / total_t).collect()
     }
 }

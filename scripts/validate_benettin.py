@@ -133,7 +133,9 @@ def benettin(x0, deriv, jacobian):
                     ni = math.sqrt(sum(tangent[i][l] ** 2 for l in range(2 * N)))
                     tangent[i] = [tangent[i][l] / ni for l in range(2 * N)]
 
-    return log_sum[0] / (DT * STEPS)
+    # Full top-3 spectrum, not just lambda_1: lambda_2 and lambda_3 were being
+    # computed and discarded by the Rust estimator (log_sum[1], log_sum[2]).
+    return [ls / (DT * STEPS) for ls in log_sum]
 
 
 def rust_lambda(M, L, B, C):
@@ -151,7 +153,8 @@ def main():
     ok_all = True
     print(f"float64-independent vs Rust Q32.32 Benettin (deterministic IC {X0[:3]})")
     for label, M, L, B, C, gated in CONFIGS:
-        ref = benettin(X0, make_deriv(M, L, B, C), make_jacobian(M, L, B, C))
+        lam = benettin(X0, make_deriv(M, L, B, C), make_jacobian(M, L, B, C))
+        ref = lam[0]
         rust = rust_lambda(M, L, B, C)
         rel = abs(ref - rust) / max(abs(ref), 1e-6)
         if gated:

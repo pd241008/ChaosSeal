@@ -1,5 +1,17 @@
 # Manuscript Patch v3 — Ready-to-Paste Section 6/7 Additions
 
+> **METASTABILITY CAVEAT (pending independent verification).** The
+> pendulum-entropy material in this document (λ_min series, dt_bound ~ 232–282 s
+> / 6932 s, "attractor" claims, positive-Lyapunov entropy-source claims)
+> describes the **bounded-swing transient** of a model whose ODE is *not* a
+> bounded chaotic attractor in exact arithmetic (unbounded parabolic coupling →
+> deterministic energy escape; worst-case escape ~18 s over random ICs, ~127 s
+> for the deterministic cold-start IC). Fixed-point Q32.32 long-horizon
+> "attractors" are saturation artifacts. The 256-bit/epoch accumulation claim is
+> not supported by any tested variant. See
+> `docs/design_note_metastability.md` and `scripts/verify_metastability.py`.
+> Do not paste these sections as-is until the verifier confirms.
+
 This document contains the manuscript additions requested for the strengthening pass, in
 the suggested integration order. Each block is written to be pasted directly into the
 corresponding section of the manuscript. All numbers are the measured values from
