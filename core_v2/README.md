@@ -6,8 +6,8 @@ Protocol engine — the source of truth for all cryptographic and kinematic comp
 
 | Module | Purpose |
 |--------|---------|
-| `fixed` | Q32.32 fixed-point arithmetic (no floats in hot path) |
-| `kinematics` | Multi-pendulum ODE system + RK4 integrator |
+| `fixed` | Q32.32 fixed-point arithmetic (no floats in hot path; `exp`/`ln`/`atan2` — incl. the angle `wrap` used by the coupling — are deterministic host-libm fallbacks) |
+| `kinematics` | Multi-pendulum ODE system + RK4 integrator, bounded wrapped elastic coupling (default c=1.0) |
 | `lyapunov` | Benettin algorithm for Lyapunov exponent estimator (`λ1`) |
 | `crypto` | HKDF → AES-256-CTR, HMAC-SHA256 commitment |
 | `bee` | Subset-difference key tree, covering-set algorithm |

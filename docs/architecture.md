@@ -49,8 +49,8 @@ The source of truth for all protocol logic.
 
 | Module | Purpose |
 |--------|---------|
-| `fixed` | Q32.32 fixed-point arithmetic (no floats in hot path) |
-| `kinematics` | Multi-pendulum ODE system + RK4 integrator, fixed-point throughout |
+| `fixed` | Q32.32 fixed-point arithmetic (no floats in hot path; except libm-fallback `exp`/`ln`/`atan2` used by `wrap`) |
+| `kinematics` | Multi-pendulum ODE system + RK4 integrator, fixed-point throughout; bounded wrapped elastic coupling (`atan2`-wrap, default c=1.0) |
 | `lyapunov` | Benettin algorithm for Lyapunov exponent estimator (`λ1`) |
 | `crypto` | HKDF → AES-256-CTR (vetted crates), HMAC-SHA256 commitment |
 | `bee` | Subset-difference key tree, covering-set algorithm, ciphertext serialization |

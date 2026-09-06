@@ -9,6 +9,14 @@
 > long-horizon "attractors" are saturation artifacts. See
 > `docs/design_note_metastability.md` and `scripts/verify_metastability.py`.
 > Do not use as-is for final security numbers until the verifier confirms.
+>
+> **RESOLUTION (2026-09-06).** The coupling is now the bounded wrapped form
+> `atan2(sin Δθ, cos Δθ)` with default c=1.0 (see
+> `docs/design_note_metastability.md` §7 and ADR-004). Measured under the new
+> design: λ₁ ≈ 0.405 (min 0.379 over 24-600 random ICs, T=2000-8000 s), KS ≈
+> 1.0-1.3 nats/s → 256-bit dt ≈ 136-176 s. These are *design-stage* numbers:
+> the final security numbers in this manuscript still require independent
+> verifier confirmation and the fixed-point-discretization-floor caveat.
 
 **Supplementary material addressing the two Tier-3 gaps flagged for strengthening:
 (1) composing the BEE collusion-resistance argument with the data-layer

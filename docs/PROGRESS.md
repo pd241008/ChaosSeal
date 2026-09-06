@@ -36,6 +36,21 @@ This document tracks the implementation progress of the ChaosSeal protocol refer
 | `7e09ffe` | core | Remove dead code and unused imports (silences all build/test warnings) |
 | — | netsim | LinkStats gains `latency_samples_ms` (per-visible-link one-way latency) |
 | — | analysis | `stats.py`, `figures.py`, `Makefile`; 3 paper figures + stats over real runs |
+| `f68bdc5` | lyapunov | Correct Benettin tangent update to the linearized Jacobian flow |
+| `04ed795` | lyapunov | Correct Jacobian inertia placement (damping outside /I, coupling inside /I); regenerate robustness sweep |
+| `4c3d017` | entropy | Metastability verification + epoch-cap policy comparison; reframe pendulum to a transient chaotic conditioner |
+| `1cc6726` | entropy | Explore bounded-coupling redesign; select wrapped-atan2 coupling c=1.0 |
+| `9eff403` | entropy | Implement bounded wrapped coupling (default c=1.0 incl. C-ABI keygen); re-validate + regenerate sweep |
+
+## Entropy-Design Status
+
+The pendulum is the protocol's deterministic key-rotation driver. The original
+linear elastic coupling was found **not bounded** (energy escape ~18-127 s); the
+design is now the **wrapped bounded coupling** at default c=1.0 (see
+`docs/design_note_metastability.md` §7). Measured design-stage rates: λ₁ ≈
+0.405 (min 0.379 over 24-600 random ICs), KS ≈ 1.0-1.3 nats/s → 256-bit dt ≈
+136-176 s. Final security numbers are **verifier-gated**; the manuscript
+rewrite is blocked on that confirmation.
 
 ## Next Steps
 
