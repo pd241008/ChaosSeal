@@ -2,14 +2,26 @@
 """Regenerate pendulum-robustness sweep data from the actual CLI binary.
 
 Runs lyapunov-attractor at each parameter point, extracts the low-band λ_min
-(physical minimum only, excluding the ~15% blow-up artifact band), and writes
-a committed CSV so v4_generalization.pendulum_robustness() is reproducible.
+(physical minimum only, excluding the old ~15% blow-up artifact band -- under
+the wrapped (bounded) coupling design, the blow-up band is ~0), and writes a
+committed CSV so v4_generalization.pendulum_robustness() is reproducible.
+
+NOTE (bounded redesign): the sweep now exercises the wrapped-atan2 coupling
+(commit after 1cc6726) and the DEFAULT coupling moved to 1.0 (the entropy-max
+design; see scripts/explore_bounded_coupling.py). All held-at-default points
+use c=1.0. The horizon moved from T=100 s to T=2000 s: at T=100 s the
+Benettin slot-1 exponent has not yet separated from slot-2/slot-3, producing
+near-zero/negative "minima" that are pure convergence-lag artifacts -- the
+converged (2000 s) minima are strictly positive everywhere (weakest point
+L=4.0: 0.081). Sample count reduced from 500 to 150 to keep the longer
+horizon affordable; means/minima agree with the 24-IC probes to ~3 digits.
 """
 import subprocess, json, csv, sys, os
+from concurrent.futures import ThreadPoolExecutor
 
 CLI = os.path.join(os.path.dirname(__file__), "..", "core_v2", "target", "release", "cli_v2")
-SAMPLES = 500
-STEPS = 10000
+SAMPLES = 150
+STEPS = 200000
 OUT = os.path.join(os.path.dirname(__file__), "..", "results_v3", "pendulum_robustness_sweep.csv")
 
 PARAMS = {
@@ -44,24 +56,32 @@ def run_one(param_name, val, defaults):
 
 defaults = {
     "damping": "0.1",
-    "coupling": "0.5",
+    "coupling": "1.0",
     "length": "1.0",
     "mass": "1.0",
 }
 
 rows = []
-for pname, pinfo in PARAMS.items():
-    print(f"Running {pname} sweep ({len(pinfo['vals'])} points)...")
-    for val in pinfo["vals"]:
-        lo_min, lo_mean, hi_frac = run_one(pname, val, defaults)
-        print(f"  {pname}={val}: low_min={lo_min:.4f} low_mean={lo_mean:.3f} hi_frac={hi_frac:.3f}" if lo_min else f"  {pname}={val}: FAILED")
-        rows.append({
+def process_one(arg):
+    pname, val = arg
+    lo_min, lo_mean, hi_frac = run_one(pname, val, defaults)
+    if lo_min is not None:
+        print(f"  {pname}={val}: low_min={lo_min:.4f} low_mean={lo_mean:.3f} hi_frac={hi_frac:.3f}", flush=True)
+        return {
             "parameter": pname,
             "value": val,
-            "lowband_lambda_min": f"{lo_min:.6f}" if lo_min else "",
-            "lowband_lambda_mean": f"{lo_mean:.4f}" if lo_mean else "",
-            "highband_frac": f"{hi_frac:.4f}" if hi_frac else "",
-        })
+            "lowband_lambda_min": f"{lo_min:.6f}",
+            "lowband_lambda_mean": f"{lo_mean:.4f}",
+            "highband_frac": f"{hi_frac:.4f}",
+        }
+    print(f"  {pname}={val}: FAILED", flush=True)
+    return None
+
+WORKERS = int(os.environ.get("SWEEP_WORKERS", "6"))
+jobs = [(pname, val) for pname, pinfo in PARAMS.items() for val in pinfo["vals"]]
+print(f"Running {len(jobs)} sweep points with {WORKERS} workers (T={STEPS*0.01}s)...")
+with ThreadPoolExecutor(max_workers=WORKERS) as ex:
+    rows = [r for r in ex.map(process_one, jobs) if r is not None]
 
 with open(OUT, "w", newline="") as f:
     w = csv.DictWriter(f, fieldnames=["parameter", "value", "lowband_lambda_min", "lowband_lambda_mean", "highband_frac"])

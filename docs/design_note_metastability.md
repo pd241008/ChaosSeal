@@ -225,3 +225,76 @@ documented as a transient chaotic conditioner, not a 256-bit/epoch source.
 - Fixed-point saturation bound (+/-2^31) from `core_v2/src/fixed/q32_32.rs`.
 - Clamp-f64 non-reproduction (mechanism nuance).
 - Escape-time CDF over random ICs (epoch cap input).
+
+## 7. Resolution: the bounded (wrapped) coupling
+
+The unboundedness is caused by the raw difference `theta_i - theta_prev` in the
+elastic term. The redesign replaces it with the principal-value wrap
+
+```
+wrap(d) = atan2(sin d, cos d)  in (-pi, pi]
+tau_c = c * (wrap(theta_i - theta_prev) / d) * 0.1
+```
+
+so the coupling potential is confined to a bounded per-pair well: the spring
+"turns over" whenever a pair winds a full turn instead of ramping torque
+without bound. This removes the energy-escape mechanism at its source.
+
+### 7.1 Jacobian of the wrapped term
+
+`wrap` is piecewise linear with slope +1 on every interval `( (2k-1)pi,
+(2k+1)pi )` (odd multiples of pi are the branch cut; `wrap` jumps by 2 pi
+there). Hence, for states strictly off the cut (i.e. more than an epsilon from
+the FD half-step),
+
+```
+  d/dtheta  tau_c =  +c*0.1/d          (elastic Jacobian rows unchanged)
+  d/dtheta_prev tau_c = -c*0.1/d
+```
+
+exactly as before the wrap, so `MultiPendulum::jacobian()` keeps its
+structure. Tested at `theta_i-theta_prev` on both branches and near the cut
+(`core_v2/tests/kat.rs`): FD vs analytic matches (slope 1). At the exact cut
+the ODE value is finite (wrap(pi) = pi, torque ~ c*pi*0.1/d), the analytic
+entry stays -0.1, and an FD probe straddling the cut deliberately does NOT
+match slope 1 -- that documents the (measure-zero, 2 pi) discontinuity, not a
+regression. Benettin integration is unaffected: RK4 steps essentially never
+land exactly on the cut, and the Jacobian is used a.e. The implementation
+`Q32_32::wrap` uses f64-fallback `atan2` (same convention as `exp`/`ln`), so
+the wrap reproduces the float64 reference to full host precision.
+
+### 7.2 Validation and measured numbers (design c=1.0, m=L=1, b=0.1)
+
+Cross-checked in `scripts/validate_benettin.py` (float64 replicator vs Rust,
+all rows gated, including the former L=0.5 boundary case which now matches
+exactly). Independent-basins exploration in `scripts/explore_bounded_coupling.py`/
+`results_v3/compare/bounded_coupling_exploration.json`:
+
+- Bounded: max|omega| ~ 6.9 over 20000 s at c=1.0 (and user reproduction at
+  T=8000 s: 6.83). No pairing produces the old unbounded ramp.
+- Robustly chaotic: 24/24 random ICs, lambda_1 min 0.379 / mean 0.405
+  (T=2000 s, Rust Q32.32); float64 ref lambda_1 0.409-0.410 at the
+  deterministic IC (T=8000 s). atan2-wrap baseline sweep: wrapped c=1.0 wins
+  on min and lowest-variance over tanh/sin alternatives.
+- Full spectrum (T=2000-8000 s): slot-1 ~ 0.405, slot-2 ~ +0.005..0.011,
+  slot-3 ~ +0.88 (float-confirmed; slot order not sorted to descending until
+  far longer horizons because of the flow's anisotropic expansion). KS (sum of
+  positive slots) mean ~ 1.30 nats/s, min ~ 1.01 nats/s -> 256-bit dt ~ 136
+  (mean) / ~176 s (worst-IC). This is *measured*, and final/verifier-gated.
+
+Subject to the verify-before-trust gate, the wrapped design is the candidate
+for restoring a 256-bit/epoch claim; the T=100 s committed datasets remain
+behaviorally valid (transient statistics) but all final numbers and the
+manuscript rewrite await the verifier handoff.
+
+### 7.3 Parameter robustness (T=2000 s, 150 ICs/point)
+
+`results_v3/pendulum_robustness_sweep.csv` regenerated under the wrapped
+design with default coupling c=1.0. Blow-up band is gone everywhere
+(hi_frac = 0.000). Low-band lambda1 mean stays positive at every point; the
+default point is strong (min 0.370 / mean 0.405). Honest weak-sensitivity
+bands to report: coupling < ~0.35 (mean ~0.01-0.21, near-critical), mass 0.5
+(mean 0.044), length 4.0 (mean 0.084 -> 256-bit dt ~2200 s). Two
+single-IC minima land <= 0 at T=2000 s (coupling=0.2, damping=0.2) -- slot-1
+convergence-lag on rare ICs in weak regimes, not loss of chaos (p10/median for
+damping=0.2 are 0.67/0.71; n=600).

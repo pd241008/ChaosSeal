@@ -79,6 +79,22 @@ impl Q32_32 {
         let v = self.to_f64();
         Self((v.ln() * (1i64 << 32) as f64).round() as i64)
     }
+
+    /// Principal-value `atan2(self = y, rhs = x)` in `(-pi, pi]`. f64 fallback
+    /// (same convention as `exp`/`ln`) so the angle wrap reproduces the
+    /// float64 reference. Used by the bounded (wrapped) elastic coupling.
+    #[inline]
+    pub fn atan2(self, x: Self) -> Self {
+        let v = self.to_f64().atan2(x.to_f64());
+        Self((v * (1i64 << 32) as f64).round() as i64)
+    }
+
+    /// Angle wrap to `(-pi, pi]` by principal value: atan2(sin x, cos x).
+    /// Slope 1 almost everywhere; finite at the measure-zero branch cut.
+    #[inline]
+    pub fn wrap(self) -> Self {
+        self.sin().atan2(self.cos())
+    }
 }
 
 impl Add for Q32_32 {
