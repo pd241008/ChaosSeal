@@ -22,7 +22,7 @@ enum Commands {
         length: f64,
         #[arg(long, default_value = "0.1")]
         damping: f64,
-        #[arg(long, default_value = "0.5")]
+        #[arg(long, default_value = "1.0")]
         coupling: f64,
         #[arg(long, default_value = "10000")]
         steps: usize,
@@ -36,7 +36,7 @@ enum Commands {
         length: f64,
         #[arg(long, default_value = "0.1")]
         damping: f64,
-        #[arg(long, default_value = "0.5")]
+        #[arg(long, default_value = "1.0")]
         coupling: f64,
         #[arg(long, default_value = "10000")]
         steps: usize,
