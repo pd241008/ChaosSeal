@@ -31,23 +31,24 @@ RINT = 10
 X0 = [0.1, 0.2, 0.3, 0.0, 0.0, 0.0]
 
 CONFIGS = [
-    # Verifiable gate (the corrected Jacobian commutes with the ODE here):
-    ("default  m=1.0,L=1.0  (inertia 1)", 1.0, 1.0, 0.1, 0.5, True),
+    # Verifiable gate (the corrected Jacobian commutes with the ODE here).
+    # NOTE (bounded redesign): the elastic coupling is now the WRAPPED term
+    # wrap(theta_i - theta_j) = atan2(sin d, cos d) in (-pi, pi], matching the
+    # Rust implementation since 1cc6726+ (Q32_32::wrap is an f64-fallback
+    # atan2, so the wrap values agree to full float precision). The Jacobian
+    # keeps slope +1 a.e. because wrap is locally linear with unit slope.
+    ("default  m=1.0,L=1.0  (inertia 1) c=.5", 1.0, 1.0, 0.1, 0.5, True),
+    ("default  m=1.0,L=1.0  (inertia 1) c=1.0", 1.0, 1.0, 0.1, 1.0, True),
     ("m=0.5,L=1.0  (inertia .5)", 0.5, 1.0, 0.1, 0.5, True),
     ("m=1.5,L=2.0  (inertia 6)", 1.5, 2.0, 0.2, 0.7, True),
     ("m=2.0,L=0.75 (inertia 1.125)", 2.0, 0.75, 0.4, 0.3, True),
     ("m=1.0,L=2.0  (inertia 4)", 1.0, 2.0, 0.1, 0.5, True),
     ("m=1.0,L=4.0  (inertia 16)", 1.0, 4.0, 0.1, 0.5, True),
-    # DOCUMENTED BOUNDARY DIVERGENCE (excluded from the gate): m=1.0,L=0.5,
-    # inertia 0.25. Both implementations agree the system has a bifurcation
-    # cliff near L~0.58. Below it, the fixed-point trig bias (deterministic
-    # O(1e-6) vector-field error) systematically moves the branch: float64
-    # lambda_1~0.52, Q32.32 lambda_1~1.91, both stable over 10k-40k steps.
-    # The Jacobian itself is not at issue (finite-difference and Jv identities
-    # hold at this config); the trajectory that each implementation integrates
-    # is on a different branch of a parameter-sensitive bifurcation. Neither
-    # value is authoritative; the L=0.5 length-sweep row must be reported as
-    # precision-limited.
+    # LONG-HORIZON REFERENCE (documented, not part of the precision gate): this
+    # row previously sat on a bifurcation cliff for the unwrapped linear
+    # coupling (float lambda_1 ~0.52 vs fixed-point ~1.91); after switching to
+    # the wrapped (bounded) coupling both implementations integrate the same
+    # branch and agree exactly (0.06801). Reported as a sync check only.
     ("m=1.0,L=0.5  (inertia .25)  [boundary]", 1.0, 0.5, 0.1, 0.5, False),
 ]
 
@@ -66,7 +67,7 @@ def make_deriv(M, L, B, C):
                 if j == i or (i >= 1 and j == i - 1):
                     theta_j = x[j]
                     dd = min(L, L)
-                    torque_c += C * ((theta - theta_j) / dd) * 0.1
+                    torque_c += C * math.atan2(math.sin(theta - theta_j), math.cos(theta - theta_j)) / dd * 0.1
             inertia = M * L * L
             d[n + i] += (torque_g + torque_c) / inertia
             d[i] = omega

@@ -62,7 +62,14 @@ impl MultiPendulum {
                 if j == i || (i >= 1 && j == i - 1) {
                     let theta_j = state[j];
                     let d = self.lengths[i].min(self.lengths[j]);
-                    torque_c = torque_c + *coupling * ((theta_i - theta_j) / d) * Q32_32::from_f64(0.1);
+                    // Bounded elastic coupling: the raw angle difference is
+                    // wrapped to (-pi, pi] via atan2(sin dtheta, cos dtheta).
+                    // The unwrapped linear term is globally unbounded (energy
+                    // escape in ~17-130s, see docs/design_note_metastability.md);
+                    // the wrapped term is bounded and, at c=1.0, robustly
+                    // chaotic across random ICs (scripts/explore_bounded_coupling.py).
+                    let wrapped_diff = (theta_i - theta_j).wrap();
+                    torque_c = torque_c + *coupling * (wrapped_diff / d) * Q32_32::from_f64(0.1);
                 }
             }
 
@@ -118,11 +125,15 @@ impl MultiPendulum {
             let lh = self.lengths[i] * half;
             let mut d_om = g * m2 * lh * state[i].cos();
 
-            // coupling tau_c = c_{i-1} * ((theta_i - theta_{i-1}) / d) * 0.1
+            // coupling tau_c = c_{i-1} * (wrap(theta_i - theta_{i-1}) / d) * 0.1
             // for i >= 1; torque_c is inside the /inertia division in
-            // derivatives(), so both entries carry 1/inertia:
+            // derivatives(), so both entries carry 1/inertia. The angle wrap
+            // has slope +1 almost everywhere (branch cut at odd multiples of
+            // pi, measure-zero; the ODE value is finite there), so:
             //   d(tau_c)/d(theta_i)   = +c*0.1/d
             //   d(tau_c)/d(theta_{i-1}) = -c*0.1/d
+            // As long as the sampled state is not within the finite-difference
+            // half-step of the branch cut, the analytic and FD Jacobians agree.
             if i >= 1 {
                 let coupling = self.couplings[i - 1];
                 let d = self.lengths[i].min(self.lengths[i - 1]);

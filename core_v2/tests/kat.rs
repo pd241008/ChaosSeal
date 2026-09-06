@@ -188,20 +188,114 @@ fn test_tangent_product_identity() {
 }
 
 #[test]
-fn test_lyapunov_spectrum_lambda1_transient_window() {
-    // Within the bounded-swing transient window (T ~ 100 s) the top-Lyapunov
-    // exponent must reproduce the float64 cross-validated value at the
-    // deterministic IC (0.16994 float64 vs 0.17777 fixed-point, the ~4.6%
-    // discrepancy documented in scripts/validate_benettin.py).
-    //
-    // NOTE (metastability finding): ordering lambda1>=lambda2>=lambda3 is NOT
-    // asserted here because the top-3 spectrum is not converged on this
-    // window (lambda2 > lambda1 until much longer horizons). See
-    // docs/design_note_metastability.md: the linear-coupling ODE is not a
-    // bounded attractor; long-horizon spectra of both simulators are
-    // numerical artifacts, so only transient-window lambda1 is physically
-    // meaningful.
-    let pendulum = MultiPendulum::new(3, Q32_32::from_f64(1.0), Q32_32::from_f64(1.0), Q32_32::from_f64(0.1), Q32_32::from_f64(0.5));
+fn test_wrapped_coupling_jacobian_off_cut() {
+    // The wrapped elastic coupling wrap(d) = atan2(sin d, cos d) is locally
+    // linear with unit slope, so the analytic Jacobian keeps the pre-wrapped
+    // coupling entries (+/- c*0.1/d) for every state strictly away from the
+    // branch cut at odd multiples of pi (and further than the FD half-step
+    // delta). Sweep angle pairs that land on different branches: small
+    // differences, over-the-top (diff ~ pi-0.05), just past-the-top (diff ~
+    // pi+0.05, wraps to -(pi-0.05)), and multi-turn spins.
+    let pendulum = MultiPendulum::new(3, Q32_32::from_f64(1.0), Q32_32::from_f64(1.0), Q32_32::from_f64(0.1), Q32_32::from_f64(1.0));
+    let states: Vec<Vec<f64>> = vec![
+        vec![0.5, -0.7, 0.3, 0.9, -0.4, 0.2],         // diffs -1.2, 1.0
+        vec![0.0, 3.09159, 0.0, 0.0, 0.0, 0.0],      // diff pi-0.05 (below cut)
+        vec![0.0, 3.19159, 2.0, 0.0, 0.0, 0.0],      // diff pi+0.05 (above cut)
+        vec![-6.5, 0.0, 6.4, 0.0, 0.0, 0.0],         // diffs 6.5, -6.4 (multi-turn)
+    ];
+    for state_f in states {
+        let state: Vec<Q32_32> = state_f.iter().map(|&v| Q32_32::from_f64(v)).collect();
+        let analytic = pendulum.jacobian(&state);
+        let fd = finite_difference_jacobian(&pendulum, &state, 1e-3);
+        let mut worst = 0f64;
+        let mut worst_rc = (0usize, 0usize);
+        for r in 0..state.len() {
+            for c in 0..state.len() {
+                let a = analytic[r][c].to_f64();
+                let d = fd[r][c];
+                let scale = a.abs().max(1e-6);
+                let err = (a - d).abs();
+                if err / scale > worst {
+                    worst = err / scale;
+                    worst_rc = (r, c);
+                }
+                assert!(err <= scale * 0.02 + 1e-4,
+                    "state {state_f:?}: jacobian[{r}][{c}] analytic {a:.6} vs FD {d:.6}",
+                    );
+            }
+        }
+        eprintln!("wrapped-coupling Jacobian FD (state {state_f:?}): worst rel {worst:.4} at {worst_rc:?}");
+    }
+}
+
+#[test]
+fn test_wrapped_coupling_branch_cut_behavior() {
+    // At the exact branch cut (theta_i - theta_j = odd multiple of pi) the
+    // wrapped coupling is DISCONTINUOUS: a spring turns over, torque jumps by
+    // ~2*pi*C*0.1/d (finite). The vector field stays finite, so the ODE is
+    // well-behaved; Benettin only ever needs the slope-1 Jacobian (valid
+    // almost everywhere, and RK4 steps virtually never land exactly on the
+    // measure-zero cut). This test pins that contract and documents that an
+    // FD probe straddling the cut must NOT reproduce slope 1 -- that mismatch
+    // is the expected discontinuity, not a regression.
+    let pendulum = MultiPendulum::new(3, Q32_32::from_f64(1.0), Q32_32::from_f64(1.0), Q32_32::from_f64(0.1), Q32_32::from_f64(1.0));
+    let state: Vec<Q32_32> = [0.0, std::f64::consts::PI, 0.0, 0.0, 0.0, 0.0]
+        .iter().map(|&v| Q32_32::from_f64(v)).collect();
+
+    // 1) ODE finite (and not absurdly large) at the cut.
+    let d = pendulum.derivatives(Q32_32::ZERO, &state);
+    for v in &d {
+        assert!(v.to_f64().is_finite(), "deriv value non-finite at the branch cut");
+    }
+    for i in 3..6 {
+        assert!(d[i].to_f64().abs() < 20.0, "omega deriv {i} out of band at cut: {}", d[i].to_f64());
+    }
+
+    // 2) The pure coupling entry (omega_1 w.r.t. theta_0) keeps slope 1: -c*0.1/d = -0.1.
+    let analytic = pendulum.jacobian(&state);
+    assert!((analytic[4][0].to_f64() + 0.1).abs() < 1e-3,
+        "analytic coupling entry at the cut should stay -0.1, got {}", analytic[4][0].to_f64());
+
+    // 3) FD straddling the cut diverges from slope 1 (documented discontinuity).
+    let fd = finite_difference_jacobian(&pendulum, &state, 1e-3);
+    assert!((fd[4][0] + 0.1).abs() > 1.0,
+        "FD across the branch cut must NOT match slope 1 (jump ~2*pi*0.1), got {:.3}", fd[4][0]);
+    eprintln!("branch cut: ODE finite, slope-1 analytic = -0.1, straddling FD = {:.1} (discontinuity confirmed)", fd[4][0]);
+}
+
+#[test]
+fn test_wrapped_coupling_bounded_under_spin() {
+    // Boundedness at the coupling level: the raw linear term drives the
+    // elastic torque unboundedly as the relative angle accumulates multiple
+    // turns; the wrapped term confines |torque_c| <= C*pi/d*0.1 regardless of
+    // the relative angle, so spinning states cannot pump the coupling energy.
+    let pendulum = MultiPendulum::new(3, Q32_32::from_f64(1.0), Q32_32::from_f64(1.0), Q32_32::from_f64(0.1), Q32_32::from_f64(1.0));
+    let bound = 1.0 * std::f64::consts::PI / 1.0 * 0.1 + 1e-3;
+    for spins in [0u32, 1, 8, 64, 512, 2048] {
+        let offset = spins as f64 * 2.0 * std::f64::consts::PI + 0.313;
+        let state: Vec<Q32_32> = [0.0, offset, 0.0, 0.0, 0.0, 0.0]
+            .iter().map(|&v| Q32_32::from_f64(v)).collect();
+        let d = pendulum.derivatives(Q32_32::ZERO, &state);
+        let tau_c = d[4].to_f64(); // omega_1 row = gravity + coupling; gravity |.|<=9.8
+        assert!(tau_c.is_finite(), "non-finite torque at {spins} turns");
+        assert!(tau_c.abs() < 9.8 + 1.0 * bound + 1e-3,
+            "coupling torque escaped the wrap bound at {spins} turns: {tau_c:.4}");
+        eprintln!("wrapped coupling at {spins} turns: |torque| <= {:.5} (bound materialized)", tau_c.abs());
+    }
+}
+
+#[test]
+fn test_lyapunov_spectrum_lambda1_wrapped_coupling() {
+    // Bounded (wrapped-atan2) coupling at the new default c=1.0. lambda_1 at
+    // the deterministic IC [0.1,0.2,0.3] over T=100 s (dt=0.01, reinjection)
+    // is cross-validated by scripts/validate_benettin.py, which replicates the
+    // Rust integrator (ODE, wrapped coupling, Jacobian, RK4, reorthonormalize
+    // schedule) in float64: ref 0.23974 vs Rust Q32.32 0.22885 (~4.5%, the
+    // documented fixed-point trig bias). The old "transient window" framing of
+    // the linear coupling (energy escape in ~17-130 s, see
+    // docs/design_note_metastability.md) no longer applies: the wrapped term
+    // is bounded by construction, so long-horizon spectra are integrable.
+    let pendulum = MultiPendulum::new(3, Q32_32::from_f64(1.0), Q32_32::from_f64(1.0), Q32_32::from_f64(0.1), Q32_32::from_f64(1.0));
     let mut state = vec![Q32_32::ZERO; pendulum.dimension()];
     for i in 0..3 {
         state[i] = Q32_32::from_f64(0.1 * (i as f64 + 1.0));
@@ -214,9 +308,9 @@ fn test_lyapunov_spectrum_lambda1_transient_window() {
         Q32_32::ZERO, &state);
     let s: Vec<f64> = spec.iter().map(|x| x.to_f64()).collect();
     assert!(s.len() == 3, "expected 3-D spectrum, got {:?}", s);
-    assert!(s[0] >= 0.0, "lambda1 must be non-negative in the transient window, got {s:?}");
-    assert!((s[0] - 0.17777).abs() < 0.03,
-        "lambda1 {:.4} must be within 0.03 of the float64-validated 0.1778", s[0]);
+    assert!(s[0] >= 0.0, "lambda1 must be non-negative, got {s:?}");
+    assert!((s[0] - 0.22885).abs() < 0.03,
+        "lambda1 {:.4} must be within 0.03 of the validated 0.2289 (float64 ref 0.2397)", s[0]);
     let ks: f64 = s.iter().filter(|&&x| x > 0.0).sum();
     assert!(ks >= s[0], "KS entropy must include lambda1 when it is positive");
 }
@@ -224,8 +318,9 @@ fn test_lyapunov_spectrum_lambda1_transient_window() {
 #[test]
 fn probe_spectrum_horizon_dependence() {
     // Temporary diagnostic: how does the top-3 spectrum at the deterministic IC
-    // evolve with the integration horizon, and does reinjection change it?
-    let pendulum = MultiPendulum::new(3, Q32_32::from_f64(1.0), Q32_32::from_f64(1.0), Q32_32::from_f64(0.1), Q32_32::from_f64(0.5));
+    // evolve with the integration horizon under the bounded (wrapped) coupling
+    // at the new default c=1.0, and does reinjection change it?
+    let pendulum = MultiPendulum::new(3, Q32_32::from_f64(1.0), Q32_32::from_f64(1.0), Q32_32::from_f64(0.1), Q32_32::from_f64(1.0));
     let with_inject = |s: &mut [Q32_32]| {
         let n = pendulum.dimension() / 2;
         let mut sum = Q32_32::from_f64(0.0);

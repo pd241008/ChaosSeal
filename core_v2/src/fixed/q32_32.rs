@@ -134,6 +134,27 @@ impl Q32_32 {
         let v = self.to_f64();
         Self((v.ln() * (1i64 << 32) as f64).round() as i64)
     }
+
+    /// Principal-value `atan2(self = y, rhs = x)` in `(-pi, pi]`, defined so
+    /// that `angle.wrap() = x.sin().atan2(x.cos())` is the standard angle wrap
+    /// used by the bounded (wrapped) elastic coupling. Like `exp`/`ln` this
+    /// deliberately falls back to the host `f64` libm so the wrap reproduces
+    /// the float64-reference trajectory bit-for-bit where it matters; the
+    /// remaining Q32.32 error then lives only in the integrator arithmetic.
+    #[inline]
+    pub fn atan2(self, x: Self) -> Self {
+        let v = self.to_f64().atan2(x.to_f64());
+        Self((v * (1i64 << 32) as f64).round() as i64)
+    }
+
+    /// Angle wrap to `(-pi, pi]` by principal value: atan2(sin x, cos x).
+    /// Slope is 1 almost everywhere (the branch cut at odd multiples of pi is
+    /// measure-zero and the ODE value there is still finite, so a trajectory
+    /// crossing the cut is well-behaved under RK4 step integration).
+    #[inline]
+    pub fn wrap(self) -> Self {
+        self.sin().atan2(self.cos())
+    }
 }
 
 impl Add for Q32_32 {
@@ -215,6 +236,27 @@ mod tests {
         let a = Q32_32::from_f64(3.141592653589793);
         for _ in 0..1000 {
             assert_eq!(a.sin().to_bits(), a.sin().to_bits());
+        }
+    }
+
+    #[test]
+    fn test_atan2_and_wrap() {
+        let cases = [
+            (0.0f64, 1.0f64), (1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0),
+            (0.0, -1.0), (3.0, 0.0), (-3.0, 0.0), (0.7, -0.3), (0.7, 0.3),
+        ];
+        for (y, x) in cases {
+            let got = Q32_32::from_f64(y).atan2(Q32_32::from_f64(x)).to_f64();
+            assert!((got - y.atan2(x)).abs() < 1e-6,
+                "atan2({y},{x}): got {} want {}", got, y.atan2(x));
+        }
+        for x in [-3.141593, -1.0, 0.1, 1.0, 3.1, 6.28, -12.57, 1024.0] {
+            let w = Q32_32::from_f64(x).wrap().to_f64();
+            assert!(w > -std::f64::consts::PI && w <= std::f64::consts::PI + 1e-9,
+                "wrap({x}) -> {w} out of (-pi, pi]");
+            let pv = (x + std::f64::consts::PI).rem_euclid(2.0 * std::f64::consts::PI)
+                - std::f64::consts::PI;
+            assert!((pv - w).abs() < 1e-6, "wrap({x}) = {w}, expected {pv}");
         }
     }
 

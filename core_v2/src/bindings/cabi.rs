@@ -74,7 +74,7 @@ pub extern "C" fn chaosseal_epoch_keygen() {
         Q32_32::from_f64(1.0),
         Q32_32::from_f64(1.0),
         Q32_32::from_f64(0.1),
-        Q32_32::from_f64(0.5),
+        Q32_32::from_f64(1.0),
     );
     let mut state = vec![Q32_32::ZERO; pendulum.dimension()];
     for i in 0..3 {

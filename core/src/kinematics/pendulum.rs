@@ -44,7 +44,7 @@ impl MultiPendulum {
                 if j == i || (i >= 1 && j == i - 1) {
                     let theta_j = state[j];
                     let d = self.lengths[i].min(self.lengths[j]);
-                    torque_c = torque_c + *coupling * ((theta_i - theta_j) / d) * Q32_32::from_f64(0.1);
+                    torque_c = torque_c + *coupling * ((theta_i - theta_j).wrap() / d) * Q32_32::from_f64(0.1);
                 }
             }
 
@@ -100,9 +100,11 @@ impl MultiPendulum {
             let lh = self.lengths[i] * half;
             let mut d_om = g * m2 * lh * state[i].cos();
 
-            // coupling tau_c = c_{i-1} * ((theta_i - theta_{i-1}) / d) * 0.1
-            // for i >= 1; torque_c is inside the /inertia division in
-            // derivatives(), so both entries carry 1/inertia:
+            // coupling tau_c = c_{i-1} * (wrap(theta_i - theta_{i-1}) / d) * 0.1
+            // for i >= 1; the wrap has slope +1 almost everywhere (branch
+            // cut at odd multiples of pi is measure-zero, ODE value finite),
+            // so torque_c is inside the /inertia division in derivatives()
+            // and both entries carry 1/inertia:
             //   d(tau_c)/d(theta_i)   = +c*0.1/d
             //   d(tau_c)/d(theta_{i-1}) = -c*0.1/d
             if i >= 1 {
