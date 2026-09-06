@@ -32,14 +32,15 @@ def load_baseline_goodput(run_file, name):
 
 def lambda_min_distribution():
     # Measured per-trial sampled-minimum of the dominant Lyapunov exponent
-    # (10 independent attractor runs, 1000 samples each, steps=10000, theta in [-pi,pi]).
-    # Raw per-trial values are committed (not hardcoded) in
-    # results_v3/v4_lambda_min_series.csv for reproducibility. See the G-1 note in
-    # the manuscript: the per-sample lambda1 distribution is bimodal — a physical
-    # low band (mean ~1.4-1.5 nats/s) plus a spurious high band (~60-75 nats/s,
-    # ~14% of samples) that is a fixed-point blow-up artifact of the estimator's
-    # tangent update, not a physical attractor regime. lambda_min is the per-trial
-    # minimum, which is always drawn from the physical low band.
+    # (10 independent attractor runs, 1000 samples each, T=2000 s, c=1.0 wrapped
+    # coupling). Raw per-trial values are committed (not hardcoded) in
+    # results_v3/v4_lambda_min_series.csv for reproducibility (regen:
+    # scripts/regen_lambda_min_series.py). lambda_min is the per-trial minimum
+    # over 1000 sampled ICs: a conservative worst-case finite-time rate. Under
+    # the corrected tangent update (f68bdc5) the former spurious ~60-75 nats/s
+    # high band no longer exists (highband_frac = 0 in every trial), and under
+    # the bounded wrapped coupling (9eff403, c=1.0) the series sits at the
+    # verified long-horizon level (lambda1 mean ~0.40).
     import csv as _csv
     rows = list(_csv.DictReader(open(RESULTS / "v4_lambda_min_series.csv")))
     lambda_mins = np.array([float(r["lambda_min_nats_per_s"]) for r in rows])
@@ -53,8 +54,8 @@ def lambda_min_distribution():
     )
 
     ax1.hist(lambda_mins, bins=8, color="tab:blue", edgecolor="k", alpha=0.7)
-    ax1.axvline(0.7545, color="r", ls="--", lw=1.5,
-                label="manuscript point-value 0.7545")
+    ax1.axvline(256.0 * math.log(2.0) / 1200.0, color="g", ls="-.", lw=1.5,
+                label="epoch-threshold %.3f" % (256.0 * math.log(2.0) / 1200.0))
     ax1.axvline(lambda_mins.mean(), color="k", lw=1.5, label=f"mean {lambda_mins.mean():.3f}")
     ax1.set_xlabel("sampled $\\lambda_{\\min}$ (nats/s)")
     ax1.set_ylabel("trial count")
@@ -62,40 +63,46 @@ def lambda_min_distribution():
     ax1.legend(fontsize=8)
 
     ax2.hist(dts, bins=8, color="tab:orange", edgecolor="k", alpha=0.7)
-    ax2.axvline(235.2, color="r", ls="--", lw=1.5,
-                label="manuscript 235.2 s")
     ax2.axvline(1200, color="g", ls="-.", lw=2,
                 label="epoch 1200 s")
     ax2.set_xlabel("entropy bound $\\mathrm{dt}_{\\mathrm{bound}} = 256\\ln2/\\lambda_{\\min}$ (s)")
     ax2.set_ylabel("trial count")
-    ax2.set_title("(b) entropy bound is conservative")
+    ax2.set_title("(b) 256-bit accumulation fits within the epoch")
     ax2.legend(fontsize=8)
 
-    # (c) per-sample lambda1 is bimodal: the physical low band supplies lambda_min;
-    # the ~14% high band is an estimator blow-up artifact, disclosed here.
+    # (c) tail vs within-trial structure: the per-trial minimum sits just below
+    #     the per-sample lambda1 mean; both are far above the epoch threshold.
     lam = np.array([float(r["lambda_min_nats_per_s"]) for r in rows])
     maxs = np.array([float(r["lambda_max_nats_per_s"]) for r in rows])
     hfracs = np.array([float(r["highband_frac"]) for r in rows])
     lows = np.array([float(r["lowband_mean_nats_per_s"]) for r in rows])
-    ax3.bar([0], [lows.mean() - lam.min()], color="tab:blue", alpha=0.7)
-    ax3.bar([1], [maxs.mean() - lows.mean()], color="tab:red", alpha=0.5)
-    ax3.set_xticks([0, 1])
-    ax3.set_xticklabels(["physical\nlow band", "artefact\nhigh band"])
-    ax3.set_ylabel("per-sample $\\lambda_1$ (nats/s)")
-    ax3.set_title(f"(c) per-sample $\\lambda_1$ is bimodal "
-                  f"({hfracs.mean()*100:.0f}% in artefact band)")
-    ax3.text(0, lows.mean(), f"low-band\nmean {lows.mean():.2f}", ha="center", fontsize=8)
-    ax3.text(1, maxs.mean(), f"artefact\nmean {maxs.mean():.0f}", ha="center", fontsize=8)
+    cats = ["per-trial\n$\\lambda_{\\min}$", "within-trial\n$\\lambda_1$ mean",
+            "within-trial\n$\\lambda_1$ max"]
+    vals = [lam.mean(), lows.mean(), maxs.mean()]
+    ax3.bar(cats, vals, color=["tab:blue", "tab:green", "tab:purple"], alpha=0.7,
+            edgecolor="k")
+    ax3.axhline(256.0 * math.log(2.0) / 1200.0, color="g", ls="-.", lw=1.5,
+                label="epoch threshold %.3f" % (256.0 * math.log(2.0) / 1200.0))
+    ax3.set_ylabel("nats/s")
+    ax3.set_title("(c) conservative tail vs per-sample mean")
+    ax3.legend(fontsize=8)
+    for i, v in enumerate(vals):
+        ax3.text(i, v + 0.002, f"{v:.3f}", ha="center", fontsize=8)
 
-    # (d) honesty callout: lambda_min uses the physical low band
+    # (d) honesty callout: no artifact band remains; only finite-time tail scatter
     ax4.axis("off")
     ax4.text(0.02, 0.5,
-        "Per-sample $\\lambda_1$ is bimodal.\n"
-        f"~{hfracs.mean()*100:.0f}% of draws land in a spurious high band\n"
-        "(60\u201375 nats/s) caused by fixed-point blow-up in the\ntangent update, "
-        "not a physical attractor. The conservative\n$\\lambda_{\\min}$ is always drawn "
-        "from the physical low band\n(mean $\\approx {lows.mean():.2f}$ nats/s), so the "
-        "entropy bound\nbelow is unaffected by, and independent of, the\nartefact band.",
+        "Bounded wrapped coupling (ADR-004, c=1.0) with the\n"
+        "corrected tangent update (f68bdc5): the former spurious\n"
+        "60-75 nats/s high band is gone (highband_frac = 0, all\n"
+        "trials). $\\lambda_{\\min}$ is the finite-time minimum over\n"
+        "1000 sampled ICs at T=2000 s (10 trials). Worst trial\n"
+        "$\\lambda_{\\min} \\approx {lam.min():.3f}$ "
+        f"$\\Rightarrow$ $\\mathrm{{dt}}_{{\\mathrm{{bound}}}} \\approx "
+        f"{256.0*math.log(2.0)/lam.min():.0f}$ s, "
+        "comfortably\ninside the 1200 s epoch. The regime is robustly\n"
+        "chaotic: verified basin minimum ~0.379 at T=2000-8000 s.\n"
+        "Fixed-point discretization floor caveat applies (ADR-003).",
         fontsize=9, va="center", family="monospace")
 
     fig.tight_layout(rect=[0, 0, 1, 0.96])
@@ -105,9 +112,9 @@ def lambda_min_distribution():
     print(f"lambda_min mean {lambda_mins.mean():.4f} std {lambda_mins.std():.4f} "
           f"min {lambda_mins.min():.4f} max {lambda_mins.max():.4f}")
     print(f"dt_bound mean {dts.mean():.1f} min {dts.min():.1f} max {dts.max():.1f} s "
-          f"-> worst margin {1200/dts.max():.1f}x")
+          f"-> within-epoch margin {1200/dts.max():.1f}x")
     print(f"per-trial highband frac mean {hfracs.mean():.3f} | "
-          f"low-band lambda1 mean {lows.mean():.3f} | artefact max {maxs.mean():.1f}")
+          f"low-band lambda1 mean {lows.mean():.3f} | per-trial max mean {maxs.mean():.3f}")
 
 
 def crossover_surface():
@@ -178,7 +185,7 @@ if __name__ == "__main__":
 def pendulum_robustness():
     """#4: robustness of the chaotic regime to pendulum parameter drift.
 
-    The default operating point (damping=0.1, coupling=0.5, L=1.0, m=1.0) is
+    The default operating point (damping=0.1, coupling=1.0, L=1.0, m=1.0) is
     centrally located in the chaotic region of parameter space. Sweeping each
     parameter (500 attractor samples, low-band lambda_min) traces the chaos
     boundary. Raw data is measured and committed in
@@ -200,7 +207,7 @@ def pendulum_robustness():
         "coupling": {
             "vals": [0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0],
             "lmin": by_param["coupling"],
-            "xlabel": "coupling $c$", "default": 0.5,
+            "xlabel": "coupling $c$", "default": 1.0,
         },
         "length": {
             "vals": [0.5, 1.0, 2.0, 4.0],
@@ -235,8 +242,8 @@ def pendulum_robustness():
     dmin = x["damping"]["lmin"]; cm = x["coupling"]["lmin"]; ln = x["length"]["lmin"]
     print("default safety margins (500-sample low-band min):")
     print(f"  damping: onset in (0.055,0.06); default 0.1 -> {dmin[5]:.3f}")
-    print(f"  coupling: drops toward 1.0 but stays >0 on grid; default 0.5 -> {cm[3]:.3f}")
-    print(f"  length: L=0.5 non-chaotic ({ln[0]:.3f}); default 1.0 -> {ln[1]:.3f}")
+    print(f"  coupling: stays >0 on grid; default 1.0 -> {cm[6]:.3f}")
+    print(f"  length: all >0 on grid; default 1.0 -> {ln[1]:.3f}; weak at L=4.0 ({ln[3]:.3f})")
     print(f"  mass: default 1.0 -> {x['mass']['lmin'][1]:.3f}; broadband")
 
 

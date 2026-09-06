@@ -2,10 +2,17 @@
 """Regenerate the per-trial lambda_min distribution data under the corrected
 Jacobian-based Benettin estimator.
 
-Runs `cli_v2 lyapunov-attractor --samples 1000 --steps 10000` at the default
-operating point (3 pendulums, m=1.0, L=1.0, b=0.1, c=0.5) for ten independent
+Runs `cli_v2 lyapunov-attractor --samples 1000 --steps 200000` at the default
+operating point (3 pendulums, m=1.0, L=1.0, b=0.1, c=1.0) for ten independent
 1000-sample draws, mirrors the schema of the committed
 results_v3/v4_lambda_min_series.csv, and overwrites it.
+
+The evaluation horizon is T=2000 s (steps=200000, dt=0.01), matching the
+convention used for the regenerated robustness sweep and the verified
+long-horizon Benettin numbers (lambda1 mean ~0.405, min ~0.379 over random ICs
+at T=2000-8000 s). The historical committed series was T=100 s at c=0.5; both
+have changed: the old values are superseded by ADR-004 (bounded wrapped
+coupling, default c=1.0).
 
 The column names are retained from the previous (pre-fix) dataset for backward
 compatibility; with the corrected tangent update the spurious 60-75 nats/s
@@ -24,18 +31,18 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CLI = os.path.join(ROOT, "core_v2", "target", "release", "cli_v2")
 OUT = os.path.join(ROOT, "results_v3", "v4_lambda_min_series.csv")
 SAMPLES = 1000
-STEPS = 10000
+STEPS = 200000  # T = STEPS * dt = 2000 s (dt=0.01)
 TRIALS = 10
 HIGH_BAND_CUTOFF = 60.0  # nats/s; retained for schema compatibility
 
 BASE = ["--pendulums", "3", "--mass", "1.0", "--length", "1.0",
-        "--damping", "0.1", "--coupling", "0.5",
+        "--damping", "0.1", "--coupling", "1.0",
         "--samples", str(SAMPLES), "--steps", str(STEPS)]
 
 
 def run_trial():
     res = subprocess.run([CLI, "lyapunov-attractor"] + BASE,
-                         capture_output=True, text=True, timeout=600)
+                         capture_output=True, text=True, timeout=1800)
     if res.returncode != 0:
         raise RuntimeError(res.stderr)
     return json.loads(res.stdout)["output"]
