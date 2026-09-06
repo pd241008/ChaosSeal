@@ -1,0 +1,200 @@
+[
+  {
+    "label": "wrapped_linear c=0.5 (direct fix: wrap the original coupling)",
+    "kind": "wrapped_linear",
+    "C": 0.5,
+    "long_horizon": {
+      "bounded": true,
+      "max_omega": 6.92,
+      "escaped_at_s": null,
+      "T_s": 20000.0
+    },
+    "default_ic_lambda1": 0.29320212434173853,
+    "basin_sweep": {
+      "n_valid": 40,
+      "n_escaped_during_measurement": 0,
+      "frac_chaotic": 1.0,
+      "bimodal": true,
+      "mean": 0.25908636884616004,
+      "min": 0.15472708721020076,
+      "max": 0.3845297485346055
+    }
+  },
+  {
+    "label": "wrapped_linear c=1.0",
+    "kind": "wrapped_linear",
+    "C": 1.0,
+    "long_horizon": {
+      "bounded": true,
+      "max_omega": 6.9,
+      "escaped_at_s": null,
+      "T_s": 20000.0
+    },
+    "default_ic_lambda1": 0.36889891175952494,
+    "basin_sweep": {
+      "n_valid": 40,
+      "n_escaped_during_measurement": 0,
+      "frac_chaotic": 1.0,
+      "bimodal": false,
+      "mean": 0.29265809566016293,
+      "min": 0.17903789084397706,
+      "max": 0.4250055632511105
+    }
+  },
+  {
+    "label": "tanh c=0.5 scale=1.0",
+    "kind": "tanh",
+    "C": [
+      0.5,
+      1.0
+    ],
+    "long_horizon": {
+      "bounded": true,
+      "max_omega": 6.89,
+      "escaped_at_s": null,
+      "T_s": 20000.0
+    },
+    "default_ic_lambda1": 0.09306621012862783,
+    "basin_sweep": {
+      "n_valid": 40,
+      "n_escaped_during_measurement": 0,
+      "frac_chaotic": 0.975,
+      "bimodal": false,
+      "mean": 0.10199474997031674,
+      "min": 0.007637424619159562,
+      "max": 0.20521668666002074
+    }
+  },
+  {
+    "label": "tanh c=1.0 scale=0.5 (tighter saturation)",
+    "kind": "tanh",
+    "C": [
+      1.0,
+      0.5
+    ],
+    "long_horizon": {
+      "bounded": true,
+      "max_omega": 6.89,
+      "escaped_at_s": null,
+      "T_s": 20000.0
+    },
+    "default_ic_lambda1": 0.016397359308718735,
+    "basin_sweep": {
+      "n_valid": 40,
+      "n_escaped_during_measurement": 0,
+      "frac_chaotic": 0.975,
+      "bimodal": false,
+      "mean": 0.09234315066658563,
+      "min": -0.0014287750798399235,
+      "max": 0.2053430567607253
+    }
+  },
+  {
+    "label": "tanh c=2.0 scale=1.0",
+    "kind": "tanh",
+    "C": [
+      2.0,
+      1.0
+    ],
+    "long_horizon": {
+      "bounded": true,
+      "max_omega": 6.89,
+      "escaped_at_s": null,
+      "T_s": 20000.0
+    },
+    "default_ic_lambda1": 0.09688129969469794,
+    "basin_sweep": {
+      "n_valid": 40,
+      "n_escaped_during_measurement": 0,
+      "frac_chaotic": 0.875,
+      "bimodal": false,
+      "mean": 0.09616526862034078,
+      "min": -0.01982344190163617,
+      "max": 0.22852308052071676
+    }
+  },
+  {
+    "label": "sin c=0.8 (between the original 0.5 and 2.0 data points)",
+    "kind": "sin",
+    "C": 0.8,
+    "long_horizon": {
+      "bounded": true,
+      "max_omega": 6.7738,
+      "escaped_at_s": null,
+      "T_s": 20000.0
+    },
+    "default_ic_lambda1": 0.010936197172259932,
+    "basin_sweep": {
+      "n_valid": 40,
+      "n_escaped_during_measurement": 0,
+      "frac_chaotic": 1.0,
+      "bimodal": true,
+      "mean": 0.1705358022641545,
+      "min": 0.02123013239846233,
+      "max": 0.4656637877542963
+    }
+  },
+  {
+    "label": "sin c=1.0",
+    "kind": "sin",
+    "C": 1.0,
+    "long_horizon": {
+      "bounded": true,
+      "max_omega": 6.7404,
+      "escaped_at_s": null,
+      "T_s": 20000.0
+    },
+    "default_ic_lambda1": 0.02676821313303248,
+    "basin_sweep": {
+      "n_valid": 40,
+      "n_escaped_during_measurement": 0,
+      "frac_chaotic": 1.0,
+      "bimodal": true,
+      "mean": 0.23096878350975586,
+      "min": 0.011347706192946418,
+      "max": 0.4517799503748491
+    }
+  },
+  {
+    "label": "sin c=1.2",
+    "kind": "sin",
+    "C": 1.2,
+    "long_horizon": {
+      "bounded": true,
+      "max_omega": 6.7083,
+      "escaped_at_s": null,
+      "T_s": 20000.0
+    },
+    "default_ic_lambda1": 0.10612554123959693,
+    "basin_sweep": {
+      "n_valid": 40,
+      "n_escaped_during_measurement": 0,
+      "frac_chaotic": 1.0,
+      "bimodal": false,
+      "mean": 0.22373057060267537,
+      "min": 0.0944846351088831,
+      "max": 0.4033844309012897
+    }
+  },
+  {
+    "label": "sin c=1.5",
+    "kind": "sin",
+    "C": 1.5,
+    "long_horizon": {
+      "bounded": true,
+      "max_omega": 6.9049,
+      "escaped_at_s": null,
+      "T_s": 20000.0
+    },
+    "default_ic_lambda1": 0.29635926418976566,
+    "basin_sweep": {
+      "n_valid": 40,
+      "n_escaped_during_measurement": 0,
+      "frac_chaotic": 1.0,
+      "bimodal": false,
+      "mean": 0.21207997252553107,
+      "min": 0.055551604840793765,
+      "max": 0.42481404326088973
+    }
+  }
+]
