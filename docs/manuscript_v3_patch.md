@@ -11,6 +11,16 @@
 > not supported by any tested variant. See
 > `docs/design_note_metastability.md` and `scripts/verify_metastability.py`.
 > Do not paste these sections as-is until the verifier confirms.
+>
+> **RESOLUTION (2026-09-06).** The coupling is now bounded (wrapped
+> `atan2(sin Δθ, cos Δθ)`, default c=1.0; see
+> `docs/design_note_metastability.md` §7). Measured under the new design:
+> λ₁ ≈ 0.405 (min 0.379 over 24-600 random ICs), KS ≈ 1.0-1.3 nats/s →
+> **256-bit dt ≈ 136-176 s** — the bounded design plausibly re-earns the
+> accumulation claim. These numbers are design-stage: a manuscript rewrite
+> (Section 6/7 pendulum-entropy passages) must wait for independent verifier
+> confirmation of the new design and must still state the fixed-point
+> discretization-floor caveat.
 
 This document contains the manuscript additions requested for the strengthening pass, in
 the suggested integration order. Each block is written to be pasted directly into the

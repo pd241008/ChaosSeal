@@ -12,6 +12,18 @@
 
 Low Earth Orbit (LEO) satellite swarms require secure, high-bandwidth, and delay-tolerant communications, yet traditional Public Key Infrastructure (PKI) is poorly suited to this environment because of the high latency of long-fat-network (LFN) links and the prohibitive overhead of re-keying an entire swarm after a single node compromise. This paper proposes the Chaotic Exclusion Protocol (CEP), a dual-layer architecture that combines Broadcast Exclusion Encryption (BEE) for instant, sublinear-cost node revocation with a chaos-derived, hardware-portable key-rotation mechanism for the data-transmission layer. Rather than using a chaotic trajectory directly as an XOR keystream—a design repeatedly broken in prior chaos-cryptography literature via phase-space reconstruction attacks—CEP uses the chaotic pendulum purely as a deterministic entropy source for an HKDF-based key schedule feeding standard AES-256-CTR encryption. Cross-platform floating-point divergence is eliminated using fixed-point (Q32.32) arithmetic, and synchronization is verified with an exact HMAC commitment rather than a similarity threshold. We further replace the original SMTP-based store-and-forward design with the CCSDS Bundle Protocol (BPv7) and BPSec, aligning the delay-tolerant transport layer with current space-networking standards. We present the protocol architecture, an explicit threat model, formal confidentiality and entropy arguments—including a concrete, measured epoch-duration bound of 840.6 s derived from the pendulum's estimated dominant Lyapunov exponent—and a multi-seed simulation evaluation showing that CEP delivers higher goodput than a BPSec baseline when fewer than approximately 6% of the swarm is simultaneously revoked, with a predictable, low-variance crossover past which BPSec's fixed per-bundle overhead becomes more efficient than CEP's revocation-amortized cost; an event-driven burst-then-recover model confirms the amortized goodput prediction holds on time-average.
 
+> **⚠️ PENDULUM-ENTROPY CAVEAT (2026-09-06).** The "840.6 s epoch bound" in the
+> abstract was measured from the *linear*-coupling pendulum, which was found to
+> be **not a bounded chaotic attractor** (unbounded elastic coupling → energy
+> escape ~18-127 s; Q32.32 long-horizon "attractors" are ±2^31 saturation
+> artifacts), so that number does not describe a physical 1200 s epoch. The
+> coupling has since been **redesigned to a bounded wrapped form
+> (`atan2(sin Δθ, cos Δθ)`, default c=1.0)** — validated bounded and robustly
+> chaotic (λ₁ ≈ 0.405 over 24-600 random ICs), giving a design-stage 256-bit dt
+> ≈ 136-176 s. Manuscript numbers remain **verifier-gated**. Details:
+> `docs/design_note_metastability.md` (§7), ADR-003/ADR-004 in the Design Doc
+> repo, and `scripts/verify_metastability.py` + `scripts/validate_benettin.py`.
+
 ### Highlights
 - Proposes a dual-layer protocol combining Broadcast Exclusion Encryption with a chaos-derived key schedule for LEO satellite swarm security.
 - Replaces direct chaotic-XOR keystream generation with an HKDF-to-AES-256-CTR construction, avoiding known phase-space reconstruction attacks on chaos ciphers.
