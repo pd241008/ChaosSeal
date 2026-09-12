@@ -30,6 +30,64 @@ impl BEEEngine {
         }
     }
 
+    /// Calculate the covering set size for a join event.
+    /// A join at N+1 with r revoked requires rebuilding the tree to include the new leaf.
+    /// The worst-case broadcast size equals the covering set size for r revoked at N+1.
+    pub fn join_covering_set_size(&self, new_n: usize, revoked: &[bool]) -> usize {
+        if revoked.iter().all(|&x| !x) {
+            return 1;
+        }
+        let mut count = 0;
+        let mut i = 0;
+        while i < new_n {
+            if !revoked[i] {
+                let mut j = i + 1;
+                while j < new_n && !revoked[j] && (j & (j - 1)) != 0 {
+                    j += 1;
+                }
+                count += 1;
+                i = j;
+            } else {
+                i += 1;
+            }
+        }
+        count
+    }
+
+    /// Minimum covering set size for join (analytical formula).
+    /// Cost of join is same as revocation: ceil(log(N+1)/log(r)) * r blocks
+    pub fn join_covering_set_min(&self, new_n: usize) -> usize {
+        if self.r == 0 { return 1; }
+        if self.r == 1 { return 1; }
+        let log_n = (new_n as f64).log2().ceil();
+        let log_r = (self.r as f64).log2().ceil();
+        let m = (log_n / log_r).ceil() as usize;
+        m * self.r
+    }
+
+    /// Join broadcast size in bytes (analytical minimum)
+    pub fn join_broadcast_bytes(&self, new_n: usize) -> usize {
+        let covering = self.join_covering_set_min(new_n);
+        covering * (self.key_size_bits / 8 + self.ciphertext_overhead_bytes)
+    }
+
+    /// Amortized per-join cost under lazy rebuild schedule
+    pub fn amortized_join_bytes(&self, new_n: usize, join_rate_per_epoch: f64, rebuild_interval_epochs: f64) -> f64 {
+        let total_bytes = self.join_broadcast_bytes(new_n) as f64;
+        let joins_per_rebuild = join_rate_per_epoch * rebuild_interval_epochs;
+        if joins_per_rebuild > 0.0 {
+            total_bytes / joins_per_rebuild
+        } else {
+            total_bytes
+        }
+    }
+
+    /// Per-epoch overhead bytes under lazy rebuild schedule
+    pub fn epoch_overhead_bytes(&self, new_n: usize, join_rate_per_epoch: f64, rebuild_interval_epochs: f64) -> f64 {
+        let total_bytes = self.join_broadcast_bytes(new_n) as f64;
+        total_bytes / rebuild_interval_epochs
+    }
+
     pub fn build_key_tree(&self) -> Vec<Vec<Vec<u8>>> {
         let levels = (self.n as f64).log2().ceil() as usize;
         let mut tree: Vec<Vec<Vec<u8>>> = vec![vec![vec![0u8; 32]; self.n * 2]; levels + 1];

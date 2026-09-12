@@ -68,6 +68,19 @@ enum Commands {
         r: usize,
     },
     DeterminismTest,
+    /// Join protocol evaluation: broadcast cost, amortized cost, admission latency
+    JoinProtocol {
+        #[arg(long, default_value = "1024")]
+        n: usize,
+        #[arg(long, default_value = "8")]
+        r: usize,
+        #[arg(long, default_value = "1")]
+        joins: usize,
+        #[arg(long, default_value = "1.0")]
+        rebuild_interval_epochs: f64,
+        #[arg(long, default_value = "1.0")]
+        epoch_duration_s: f64,
+    },
 }
 
 #[derive(Serialize)]
@@ -246,6 +259,50 @@ fn main() {
                 output: serde_json::json!({
                     "deterministic": deterministic,
                     "sizes": results,
+                }),
+            }
+        }
+        Commands::JoinProtocol { n, r, joins, rebuild_interval_epochs, epoch_duration_s } => {
+            let engine = BEEEngine::new(n, r);
+            let new_n = n + joins;
+            
+            // Immediate rebuild cost (same as revocation cost)
+            let immediate_broadcast_bytes = engine.join_broadcast_bytes(new_n);
+            
+            // Amortized cost under lazy rebuild
+            let join_rate_per_epoch = joins as f64 / rebuild_interval_epochs;
+            let amortized_bytes = engine.amortized_join_bytes(new_n, join_rate_per_epoch, rebuild_interval_epochs);
+            let epoch_overhead_bytes = engine.epoch_overhead_bytes(new_n, join_rate_per_epoch, rebuild_interval_epochs);
+            
+            // Admission latency
+            let admission_latency_s = rebuild_interval_epochs * epoch_duration_s;
+            
+            // Downlink capacity impact
+            let downlink_bps = 50e6;
+            let epoch_bits = downlink_bps * epoch_duration_s;
+            let immediate_overhead_pct = (immediate_broadcast_bytes as f64 * 8.0) / epoch_bits * 100.0;
+            let amortized_overhead_pct = (amortized_bytes * 8.0) / epoch_bits * 100.0;
+            let epoch_overhead_pct = (epoch_overhead_bytes * 8.0) / epoch_bits * 100.0;
+            
+            ResultJson {
+                success: true,
+                output: serde_json::json!({
+                    "n": n,
+                    "new_n": new_n,
+                    "r": r,
+                    "joins": joins,
+                    "immediate_rebuild_broadcast_bytes": immediate_broadcast_bytes,
+                    "amortized_per_join_bytes": amortized_bytes,
+                    "epoch_overhead_bytes": epoch_overhead_bytes,
+                    "rebuild_interval_epochs": rebuild_interval_epochs,
+                    "admission_latency_s": admission_latency_s,
+                    "immediate_overhead_pct_of_epoch_capacity": immediate_overhead_pct,
+                    "amortized_overhead_pct_of_epoch_capacity": amortized_overhead_pct,
+                    "epoch_overhead_pct_of_capacity": epoch_overhead_pct,
+                    "parameters": {
+                        "epoch_duration_s": epoch_duration_s,
+                        "downlink_bps": downlink_bps,
+                    }
                 }),
             }
         }
