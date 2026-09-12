@@ -83,7 +83,7 @@ impl BEEEngine {
     }
 
     /// Per-epoch overhead bytes under lazy rebuild schedule
-    pub fn epoch_overhead_bytes(&self, new_n: usize, join_rate_per_epoch: f64, rebuild_interval_epochs: f64) -> f64 {
+    pub fn epoch_overhead_bytes(&self, new_n: usize, _join_rate_per_epoch: f64, rebuild_interval_epochs: f64) -> f64 {
         let total_bytes = self.join_broadcast_bytes(new_n) as f64;
         total_bytes / rebuild_interval_epochs
     }

@@ -45,6 +45,7 @@ enum Commands {
     },
     /// Full top-3 Lyapunov spectrum per sampled initial condition, plus the
     /// Kolmogorov-Sinai entropy rate (sum of the positive exponents).
+    /// dt=0.01, so --steps 200000 = T=2000s, --steps 400000 = T=4000s, etc.
     LyapunovSpectrum {
         #[arg(long, default_value = "3")]
         pendulums: usize,
@@ -69,6 +70,9 @@ enum Commands {
     },
     DeterminismTest,
     /// Join protocol evaluation: broadcast cost, amortized cost, admission latency
+    /// Output fields:
+    ///   - amortized_per_join_bytes: total_rebuild_bytes / (joins * rebuild_interval_epochs)
+    ///   - epoch_overhead_bytes: total_rebuild_bytes / rebuild_interval_epochs
     JoinProtocol {
         #[arg(long, default_value = "1024")]
         n: usize,
