@@ -1,0 +1,10 @@
+# Analysis/verification environment. The analysis and scripts/ tooling is
+# deliberately thin: the protocol core is Rust (Q32.32 fixed-point, no
+# floats in the hot path) and the simulator is Go. Python is used only for
+# aggregation, statistics, and figures.
+#
+# Versions below are the combination on which the archived figures in
+# results_v3/figures/ and the aggregated CSVs were produced.
+
+numpy==2.4.0
+matplotlib==3.10.8

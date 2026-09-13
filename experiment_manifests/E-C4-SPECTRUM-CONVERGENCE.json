@@ -1,0 +1,29 @@
+{
+  "experiment_id": "E-C4-SPECTRUM-CONVERGENCE-01",
+  "claim": "C4",
+  "description": "Full Lyapunov spectrum (lambda_1..lambda_3) with finite-horizon convergence verification and the Kolmogorov-Sinai entropy bound",
+  "configuration": {
+    "pendulums": 3,
+    "mass": 1.0,
+    "length": 1.0,
+    "damping": 0.1,
+    "coupling": 1.0,
+    "dt": 0.01,
+    "horizons_s": [200, 500, 1000, 2000, 4000],
+    "samples": 100
+  },
+  "expected_output": "results_v3/convergence/spectrum_T*.csv; results_v3/convergence/convergence_summary.csv",
+  "expected_properties": {
+    "lambda1_mean": 0.4076,
+    "lambda1_std": 0.0086,
+    "ks_mean": 1.3425,
+    "ks_min": 0.9886,
+    "relative_change_2000_to_4000": { "lambda1": 0.0131, "lambda3": 0.0391, "ks": 0.0276 },
+    "ks_entropy_bound_256bit_s": 179.5,
+    "lambda1_entropy_bound_256bit_s": 460.0,
+    "margin_vs_1200s_epoch": "6.7x (KS) vs 0.38x (lambda1 alone)"
+  },
+  "reproducibility_level": "R2 (deterministic Q32.32 given ICs)",
+  "script": "scripts/verify_spectrum_convergence.py",
+  "cli": "core_v2/target/release/cli_v2 lyapunov-spectrum --steps 400000 --samples 100"
+}

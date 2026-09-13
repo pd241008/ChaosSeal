@@ -1,0 +1,19 @@
+{
+  "experiment_id": "E-C10-KEYSTREAM-ENTROPY-01",
+  "claim": "C10",
+  "description": "v4 generalization analysis: keystream entropy (chaotic vs counter HKDF input), lambda_min distribution, and 2D crossover surface (R vs payload)",
+  "configuration": {
+    "inputs": [
+      "results_v3/v4_lambda_min_series.csv",
+      "results_v3/v3-rsweep-seed*-r*.json",
+      "results_v3/v3-size-sweep-*.json"
+    ]
+  },
+  "expected_output": "figures results_v3/figures/v4_keystream_entropy.pdf, v4_lambda_min_distribution.pdf, v4_crossover_surface.pdf",
+  "expected_properties": {
+    "keystream_entropy": "no exploitable low-entropy structure in the chaotic key-schedule output vs counter input",
+    "crossover_surface": "crossover location as a function of |R| and payload size"
+  },
+  "reproducibility_level": "R4 (archival aggregation)",
+  "script": "analysis/v4_generalization.py"
+}

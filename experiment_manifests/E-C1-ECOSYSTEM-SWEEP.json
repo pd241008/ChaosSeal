@@ -1,0 +1,23 @@
+{
+  "experiment_id": "E-C1-ECOSYSTEM-SWEEP-01",
+  "claim": "C1",
+  "description": "Goodput R-sweep: chaos-derived key rotation (chaosseal) vs HKDF counter baseline vs BPSec, 5 seeds x 10 revoked-set sizes",
+  "configuration": {
+    "satellites": 1024,
+    "epoch_s": 1200,
+    "bee_r_values": [1, 2, 4, 8, 16, 32, 64, 128, 256, 512],
+    "seeds": [1, 2, 3, 4, 5],
+    "baselines": ["chaosseal", "counter", "bpsec"],
+    "payload_bytes": 1024,
+    "link_model": "LEO visibility windows + elevation-dependent latency + Gilbert-Elliott bursts"
+  },
+  "expected_output": "results_v3/v3-rsweep-seed*-r*.json (50 runs); aggregated results_v3/v3_sweep_stats.csv",
+  "expected_properties": {
+    "chaosseal_vs_counter_abs_diff": "<1% at every R",
+    "bpsec_goodput_mbps": 1.5978,
+    "crossover": "|R| between 64 and 128 (see C6 for the bootstrap CI)"
+  },
+  "reproducibility_level": "R3 (R2 for per-run event sequence given seed+commit)",
+  "script": "run_sweep_v3.sh (Tier 1a)",
+  "aggregation": "analysis/v3_analysis.py"
+}
