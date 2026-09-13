@@ -158,6 +158,23 @@ For reviewers and researchers, the repository is structured to transparently map
 <img src="./analysis/figures/resync_latency.pdf" alt="Resync Latency" width="400"/>
 -->
 
+## Reviewer Documentation
+
+This artifact includes a complete reviewer documentation suite. Start with
+`REVIEWER_GUIDE.md` for navigation guidance. Key documents:
+
+- `CLAIM_MAP.md` — Every paper claim (C1–C10) mapped to exact code, output, and evidence
+- `REVIEW_CHECKLIST.md` — Bounded, claim-by-claim verification checklist
+- `VERIFY.md` — Fast verification without full reproduction (build, tests, gates, smoke run)
+- `REPRODUCE.md` — Full reproduction instructions for every sweep
+- `REPRODUCIBILITY_LEVELS.md` — Classification of reproduction guarantees (R1–R4)
+- `EXPECTED_OUTPUTS.md` — What to expect when running each experiment
+- `LIMITATIONS.md` — Explicit boundaries of the artifact
+- `PROVENANCE.md` — Methodological evolution, retracted numbers, superseded components
+- `CITATION_TO_ARTIFACT.md` — Versioning and citation information
+- `experiment_manifests/` — Machine-readable experiment manifests (E-C1 … E-C10)
+- `Makefile` / `requirements.txt` — Reproducibility pipeline (`make verify`, `make smoke`, `make reproduce-*`)
+
 ## License
 
 This reference implementation is licensed under the MIT License.
