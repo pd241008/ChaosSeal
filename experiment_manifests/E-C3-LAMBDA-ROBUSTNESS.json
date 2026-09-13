@@ -1,0 +1,23 @@
+{
+  "experiment_id": "E-C3-LAMBDA-ROBUSTNESS-01",
+  "claim": "C3",
+  "description": "Bounded wrapped-coupling attractor characterization: lambda_min distribution over attractor trials and parameter robustness sweep with weak bands",
+  "configuration": {
+    "pendulums": 3,
+    "coupling": 1.0,
+    "coupling_form": "atan2(sin dtheta, cos dtheta) wrapped (ADR-004)",
+    "lambda_min_trials": 10,
+    "draws_per_trial": 1000,
+    "horizons": "T=2000-8000 s",
+    "robustness_sweep": "mass, length, damping, coupling grids via the Rust CLI"
+  },
+  "expected_output": "results_v3/v4_lambda_min_series.csv; results_v3/pendulum_robustness_sweep.csv; figures results_v3/figures/v4_lambda_min_distribution.pdf, v4_pendulum_robustness.pdf",
+  "expected_properties": {
+    "lambda1_mean_nats_per_s": 0.405,
+    "lambda1_min_nats_per_s": 0.379,
+    "weak_bands": "c<0.35 near-critical, mass=0.5, length=4.0 (~2200 s for 256 bits)"
+  },
+  "reproducibility_level": "R1 (fixed ICs, Q32.32 exact)",
+  "scripts": ["scripts/regen_lambda_min_series.py", "scripts/regen_robustness.py"],
+  "verification_gate": "scripts/validate_benettin.py -> ALL MATCH"
+}

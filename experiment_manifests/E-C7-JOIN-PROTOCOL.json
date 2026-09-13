@@ -1,0 +1,24 @@
+{
+  "experiment_id": "E-C7-JOIN-PROTOCOL-01",
+  "claim": "C7",
+  "description": "Dynamic swarm membership: join broadcast cost, lazy-rebuild amortization, admission latency",
+  "configuration": {
+    "n_values": [1024, 4096],
+    "r": 8,
+    "scenarios": [
+      { "join_rate": "1/epoch",  "rebuild_interval_epochs": 1.0,  "epoch_duration_s": 1200 },
+      { "join_rate": "1/epoch",  "rebuild_interval_epochs": 10.0, "epoch_duration_s": 1200 },
+      { "join_rate": "1/60s",    "rebuild_interval_epochs": 6.0,  "epoch_duration_s": 1200 },
+      { "join_rate": "1/10s",    "rebuild_interval_epochs": 0.05, "epoch_duration_s": 1200 }
+    ]
+  },
+  "expected_output": "results_v3/v3-membership-join-n1024-r8.json; results_v3/v3-membership-join-n4096-r8.json (netsim --membership-test); cli_v2 join-protocol for the cost-model sweep",
+  "expected_properties": {
+    "join_broadcast_bytes_n1024_r8": 2048,
+    "join_equals_revocation_cost": true,
+    "worst_case_epoch_overhead": "~0.0005% (1 join/10s, 60s rebuild window)"
+  },
+  "reproducibility_level": "R1 (deterministic cost model)",
+  "scripts": ["core_v2/src/bin/cli_v2.rs (join-protocol)", "netsim_v2 --membership-test"],
+  "theory_reference": "docs/end_to_end_security_and_membership.md Part B"
+}

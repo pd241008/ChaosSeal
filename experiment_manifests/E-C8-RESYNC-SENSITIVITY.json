@@ -1,0 +1,20 @@
+{
+  "experiment_id": "E-C8-RESYNC-SENSITIVITY-01",
+  "claim": "C8",
+  "description": "Packet-loss sweep and data-stream resync sensitivity: per-packet-HMAC resync recovers each lost/accepted packet independently",
+  "configuration": {
+    "bee_r": 8,
+    "fixed_loss_rates": [0.0, 0.01, 0.03, 0.05, 0.10],
+    "data_stream_packets": 10000,
+    "seeds": [1]
+  },
+  "expected_output": "results_v3/v3-loss-sweep-*.json; results_v3/v3_loss_sweep_stats.csv",
+  "expected_properties": {
+    "single_clean_packet_goodput": "loss-invariant (0.1-1% spread = wall-clock noise)",
+    "data_stream_resync_fraction": "approx 9% @1% loss, 30% @3%, 48% @5%, 99% @10%",
+    "chaosseal_vs_counter": "identical resync behavior"
+  },
+  "reproducibility_level": "R3 (wall-clock) / R2 (event sequence given seed+commit)",
+  "script": "run_sweep_v3.sh (Tier 2a)",
+  "aggregation": "analysis/v3_analysis.py (loss_sweep)"
+}

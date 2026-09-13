@@ -1,0 +1,21 @@
+{
+  "experiment_id": "E-C9-SIZE-SWEEP-01",
+  "claim": "C9",
+  "description": "Packet-size sweep: goodput scaling with payload for chaosseal vs counter vs BPSec",
+  "configuration": {
+    "bee_r": 8,
+    "payload_bytes": [128, 256, 512, 1024, 2048, 4096],
+    "seed": 1,
+    "baselines": ["chaosseal", "counter", "bpsec"]
+  },
+  "expected_output": "results_v3/v3-size-sweep-*.json; results_v3/v3_size_sweep_stats.csv",
+  "expected_properties": {
+    "scaling": "approximately linear with payload",
+    "chaosseal_vs_counter": "within noise at every size",
+    "chaosseal_vs_bpsec": "modestly above BPSec at moderate-to-large payloads",
+    "reference_goodput_mbps_at_1024B": { "chaosseal": 1.646, "counter": 1.651, "bpsec": 1.598 }
+  },
+  "reproducibility_level": "R3 (wall-clock) / R2 (event sequence given seed+commit)",
+  "script": "run_sweep_v3.sh (Tier 2b)",
+  "aggregation": "analysis/v3_analysis.py (size_sweep)"
+}

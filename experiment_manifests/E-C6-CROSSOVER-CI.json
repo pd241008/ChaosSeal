@@ -1,0 +1,20 @@
+{
+  "experiment_id": "E-C6-CROSSOVER-CI-01",
+  "claim": "C6",
+  "description": "Bootstrap confidence interval on the goodput crossover point (|R| where BPSec overtakes the chaos baselines)",
+  "configuration": {
+    "data_source": "results_v3/v3-rsweep-seed*-r*.json (5 seeds x 10 R values = 50 runs)",
+    "resamples": 10000,
+    "resampler_seed": 42
+  },
+  "expected_output": "results_v3/v3_bootstrap_crossover.csv; results_v3/v3_crossover_bootstrap_stats.csv; figures results_v3/figures/v3_bootstrap_crossover.pdf, v3_per_seed_crossover.pdf",
+  "expected_properties": {
+    "per_seed_crossover_R": { "seed1": 84.6, "seed2": 84.1, "seed3": 85.0, "seed4": "1.4 (outlier)", "seed5": 84.8 },
+    "bootstrap_95ci_R": [1.4, 85.4],
+    "bootstrap_95ci_pct": [0.14, 8.34],
+    "excluding_outlier_95ci_pct": [8.15, 8.34],
+    "note": "seed 4 anomalous low goodput at R=2 (1.550 vs 1.649 Mbps) causes the early-crossover artifact"
+  },
+  "reproducibility_level": "R2 (deterministic resampling, seeded)",
+  "script": "analysis/bootstrap_crossover.py"
+}

@@ -1,0 +1,21 @@
+{
+  "experiment_id": "E-C2-CORRUPTION-TEST-01",
+  "claim": "C2",
+  "description": "Single-bit initial-condition corruption detection: chaos-derived vs counter key schedule, HMAC-verified",
+  "configuration": {
+    "n_bit_positions": 256,
+    "packets_per_epoch": 64,
+    "max_epochs": 256,
+    "haystack_bytes": 32
+  },
+  "expected_output": "results_v3/v3-corruption-test.json; figure results_v3/figures/v3_corruption_divergence.pdf",
+  "expected_properties": {
+    "counter_mean_epochs_to_detect": 0,
+    "chaos_key_differs_fraction": 1.0,
+    "chaos_mean_divergence_lyap_timescales": 15.9,
+    "chaos_mean_divergence_seconds": 10.7
+  },
+  "reproducibility_level": "R2 (deterministic given seed+commit)",
+  "script": "netsim_v2 --corruption-test",
+  "aggregation": "analysis/v3_analysis.py (corruption_test)"
+}
