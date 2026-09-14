@@ -8,9 +8,11 @@ description = "ChaosSeal Cortex-M4F hardware benchmark: Q32.32 RK4 epoch steppin
 [dependencies]
 cortex-m = "0.7"
 cortex-m-rt = "0.7"
-cortex-m-semihosting = "0.5"
-panic-semihosting = { version = "0.6", features = ["exit"] }
 linked_list_allocator = "0.10"
+# Semihosting console: QEMU builds only (real hardware without a debugger
+# would hard-fault on the BKPT semihosting call).
+cortex-m-semihosting = { version = "0.5", optional = true }
+panic-semihosting = { version = "0.6", features = ["exit"], optional = true }
 
 # Crypto pinned to core_v2/Cargo.lock versions (aes 0.8.4, aes-gcm 0.10.3,
 # hkdf 0.12.4, hmac 0.12.1, sha2 0.10.9, zeroize 1.9.0). std features off.
@@ -27,6 +29,20 @@ zeroize = { version = "1.9.0", default-features = false, features = ["alloc", "d
 # member is the legacy `core` crate). Keeps the firmware dependency tree
 # and lockfile isolated from the host builds.
 [workspace]
+
+# Console backends, Midas-style:
+#   default (hw)  -> bare-metal USART2 @115200 on PA2/PA3, LEDs on PD12..15,
+#                    PLL 168 MHz clock init (works with just st-flash)
+#   qemu          -> semihosting console + semihosting exit (no debugger on
+#                    real HW), no clock init (QEMU boots at the clock it has)
+[features]
+default = ["hw"]
+hw = []
+qemu = ["dep:cortex-m-semihosting", "dep:panic-semihosting"]
+# Negative test: corrupt the KAT expectation and force a gate failure, so
+# the failure path itself (console `[fail]` line, red LED, no `[done]`) is
+# exercised rather than assumed. QEMU-verified via `make firmware-failtest`.
+failtest = []
 
 [[bin]]
 name = "stm32f4-bench"

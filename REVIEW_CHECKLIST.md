@@ -10,6 +10,7 @@ to a claim or reproducibility requirement.
 - [ ] `netsim_v2` builds and tests green (`go vet ./... && go test ./...`)
 - [ ] `pip install -r requirements.txt` succeeds (numpy, matplotlib)
 - [ ] *(optional)* `firmware/stm32f4-bench` builds for `thumbv7em-none-eabihf`; with `qemu-system-arm` installed, `make firmware-bench` passes all three on-target gates and ends `[done] all gates passed`
+- [ ] *(optional, board)* with an ST-LINK attached, `make firmware-capture` reproduces the hardware record (`bench_hw.json`): three gates pass, SysTick/DWT probes agree <5%, RK4 step ≈ 685k cycles, packet total ≈ 421k cycles (same board model reproduces to ±cache jitter)
 
 ## Claim C1 — Chaos key rotation costs no goodput
 - [ ] `results_v3/v3-rsweep-seed*-r*.json` present (50 files, 5 seeds × 10 R)

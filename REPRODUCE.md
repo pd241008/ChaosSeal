@@ -184,12 +184,29 @@ make firmware-bench
 
 **Expected output** (QEMU 11.x, `-machine netduinoplus2 -icount shift=0`):
 three `[ok]` gate lines (RFC 4231 HMAC KAT, AES-GCM roundtrip, HMAC verify),
-then deterministic `[bench]` lines — epoch RK4 step ≈ 90,703 ticks,
-Benettin Lyapunov step ≈ 104,461, HKDF key ≈ 3,771, AES-256-GCM(1024 B) ≈
-41,757, HMAC(1040 B) ≈ 7,896, packet total ≈ 53,424 — and
+then deterministic `[bench]` lines — epoch RK4 step ≈ 90,704 ticks,
+Benettin Lyapunov step ≈ 104,461, HKDF key ≈ 3,743, AES-256-GCM(1024 B) ≈
+41,757, HMAC(1040 B) ≈ 7,896, packet total ≈ 53,396 — and
 `[done] all gates passed`. Units are guest instructions (QEMU-icount),
 not measured hardware cycles; see `firmware/stm32f4-bench/bench_results.json`
 and the Limitations hardware section.
+
+### Hardware capture (physical STM32F4 Discovery, serial-free)
+
+With an ST-LINK attached (WSL: `usbipd attach --wsl --busid <id>`):
+
+```bash
+make firmware-capture
+```
+
+Flashes the board, runs it, lets OpenOCD poll the SRAM2 done flag, halts,
+dumps the bench log, and parses it (fails hard if the SysTick/DWT probes
+disagree >5% or any gate fails). The board used for the archived
+`bench_results.json` produced: RK4 step 685,378 cycles, packet total
+421,176 cycles (2.51 ms), epoch maintenance 40.8% of the 1200 s epoch;
+SysTick vs DWT probes 1,200,006 vs 1,200,011; two runs byte-identical.
+Hardware values reproduce on the same board model only to ±cache/wait-state
+jitter; the QEMU counts above are the deterministic reference.
 
 ## Cleanup
 

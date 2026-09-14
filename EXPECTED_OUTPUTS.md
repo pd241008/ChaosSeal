@@ -121,21 +121,25 @@ python3 scripts/verify_metastability.py
 (RK4 default; `--fine` adds dt=1e-4, `--dop853` adds scipy DOP853), plus the
 model-bounds summary. This documents the *historical* linear-coupling finding.
 
-## Cortex-M4 Firmware Benchmark (QEMU)
+## Cortex-M4 Firmware Benchmark (QEMU + hardware)
 
 ```bash
-make firmware-bench
+make firmware-bench      # QEMU reference (deterministic insn counts)
+make firmware-capture    # physical STM32F4 Discovery (serial-free SRAM dump)
 ```
 
-**Expected runtime**: seconds.
+**Expected runtime**: seconds (QEMU); ~10 s board run (hardware capture).
 
 **Expected output**: `[ok]` for the RFC 4231 HMAC-SHA256 KAT, the
 AES-256-GCM 1024 B roundtrip, and the HMAC commitment verify; deterministic
-`[bench]` tick counts (epoch RK4 step ≈ 90,703; packet total ≈ 53,424 —
-full table in `firmware/stm32f4-bench/bench_results.json`); ending in
-`[done] all gates passed`. If a gate fails the run terminates immediately
-with `[fail]`. Units are QEMU-icount guest instructions, not hardware
-cycles.
+`[bench]` tick counts ending in `[done] all gates passed`. If a gate fails
+the run terminates immediately with `[fail]`.
+
+Reference values — QEMU (guest instructions): epoch RK4 step ≈ 90,704;
+packet total ≈ 53,396. Hardware (true cycles @ 168 MHz, captured):
+RK4 step ≈ 685,378; packet total ≈ 421,176 (2.51 ms); the dual-clock probe
+line shows SysTick ≈ 1,200,006 vs DWT ≈ 1,200,011 (clock-init check). Full
+tables in `firmware/stm32f4-bench/bench_results.json`.
 
 ## Commit Interval × Loss Sweep
 

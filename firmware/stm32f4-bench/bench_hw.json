@@ -1,0 +1,28 @@
+{
+  "platform": "STM32F407VG Discovery (hardware)",
+  "clock_hz": 168000000,
+  "clock_source": "HSE 8 MHz PLL (M=8 N=336 P=2 Q=7), Midas constants",
+  "timer": "SysTick @ CPU clock (ticks = cycles) + DWT CYCCNT probe",
+  "dump": "/tmp/chaosseal_bench_dump.bin",
+  "status": 1,
+  "gates_passed": true,
+  "bench": {
+    "systick_probe": 1200006,
+    "dwt_probe": 1200011,
+    "epoch_rk4_step": 685378,
+    "epoch_rk4_epoch": 82245360000,
+    "lyapunov_benettin": 119155,
+    "lambda1_sanity_millinats": 197,
+    "hkdf_packet_key": 28785,
+    "aes256gcm_enc_1024B": 334488,
+    "hmac_commit_1024B": 57903,
+    "packet_total": 421176,
+    "epoch_maintenance_ticks": 82245360000,
+    "per_packet_ticks": 421176,
+    "epoch_over_packet_budget": 195275
+  },
+  "checks": {
+    "probe_rel_diff": 0.0,
+    "probe_agree_5pct": true
+  }
+}
