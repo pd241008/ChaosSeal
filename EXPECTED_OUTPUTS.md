@@ -121,6 +121,22 @@ python3 scripts/verify_metastability.py
 (RK4 default; `--fine` adds dt=1e-4, `--dop853` adds scipy DOP853), plus the
 model-bounds summary. This documents the *historical* linear-coupling finding.
 
+## Cortex-M4 Firmware Benchmark (QEMU)
+
+```bash
+make firmware-bench
+```
+
+**Expected runtime**: seconds.
+
+**Expected output**: `[ok]` for the RFC 4231 HMAC-SHA256 KAT, the
+AES-256-GCM 1024 B roundtrip, and the HMAC commitment verify; deterministic
+`[bench]` tick counts (epoch RK4 step ≈ 90,703; packet total ≈ 53,424 —
+full table in `firmware/stm32f4-bench/bench_results.json`); ending in
+`[done] all gates passed`. If a gate fails the run terminates immediately
+with `[fail]`. Units are QEMU-icount guest instructions, not hardware
+cycles.
+
 ## Commit Interval × Loss Sweep
 
 ```bash

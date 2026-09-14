@@ -20,7 +20,15 @@ cd core_v2 && cargo build --release && cd ..
 
 # Go network simulator (CGO links libchaosseal_core)
 cd netsim_v2 && CGO_ENABLED=1 go build -o chaoseal-sim . && cd ..
+
+# (optional) Cortex-M4 no_std firmware benchmark; needs the
+# thumbv7em-none-eabihf target: rustup target add thumbv7em-none-eabihf
+cd firmware/stm32f4-bench && cargo build --release && cd ..
 ```
+
+Optional: with `qemu-system-arm` installed, `make firmware-bench` runs the
+firmware under emulation (deterministic instruction counts; see
+`firmware/stm32f4-bench/README.md`).
 
 Or run everything through the pipeline driver, which builds both:
 
@@ -161,6 +169,27 @@ python3 analysis/v4_generalization.py    # λ_min distribution, crossover surfac
 `run_sweep.sh` and `run_sweep_v2.sh` drive the superseded `core/`+`netsim/`
 generation. They are retained for provenance and are **not** part of any
 canonical claim; see `PROVENANCE.md`.
+
+### Cortex-M4 firmware benchmark (hardware-cost baseline)
+
+The per-epoch and per-packet hot paths run unmodified on a Cortex-M4F
+(sources vendored verbatim from core_v2; see the firmware README for the
+exact, documented deltas):
+
+```bash
+make firmware-bench
+```
+
+**Expected runtime**: seconds to build; QEMU run is fully deterministic.
+
+**Expected output** (QEMU 11.x, `-machine netduinoplus2 -icount shift=0`):
+three `[ok]` gate lines (RFC 4231 HMAC KAT, AES-GCM roundtrip, HMAC verify),
+then deterministic `[bench]` lines — epoch RK4 step ≈ 90,703 ticks,
+Benettin Lyapunov step ≈ 104,461, HKDF key ≈ 3,771, AES-256-GCM(1024 B) ≈
+41,757, HMAC(1040 B) ≈ 7,896, packet total ≈ 53,424 — and
+`[done] all gates passed`. Units are guest instructions (QEMU-icount),
+not measured hardware cycles; see `firmware/stm32f4-bench/bench_results.json`
+and the Limitations hardware section.
 
 ## Cleanup
 
