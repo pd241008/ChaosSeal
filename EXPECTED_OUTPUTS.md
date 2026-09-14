@@ -131,7 +131,7 @@ make firmware-bench
 
 **Expected output**: `[ok]` for the RFC 4231 HMAC-SHA256 KAT, the
 AES-256-GCM 1024 B roundtrip, and the HMAC commitment verify; deterministic
-`[bench]` tick counts (epoch RK4 step ≈ 90,703; packet total ≈ 53,424 —
+`[bench]` tick counts (epoch RK4 step ≈ 90,704; packet total ≈ 53,396 —
 full table in `firmware/stm32f4-bench/bench_results.json`); ending in
 `[done] all gates passed`. If a gate fails the run terminates immediately
 with `[fail]`. Units are QEMU-icount guest instructions, not hardware

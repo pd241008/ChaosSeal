@@ -100,8 +100,11 @@ target (RFC 4231 HMAC KAT, AES-256-GCM roundtrip, HMAC commitment verify),
 and the QEMU Cortex-M4 (`netduinoplus2`, STM32F405-class) run yields
 deterministic instruction counts (SysTick under `-icount shift=0`):
 ~90.7k ticks/RK4-step (10.88 G/epoch ≈ 5.4% of a 1200 s epoch at 168 MHz
-IPC=1) and 53.4k ticks per packet (HKDF + AES-GCM 1024 B + HMAC). See
-`firmware/stm32f4-bench/bench_results.json`.
+IPC=1) and ~53.4k ticks per packet (HKDF + AES-GCM 1024 B + HMAC). The
+hardware build carries Midas-style bring-up (PLL 168 MHz, USART2 console,
+status LEDs) and flashes with `make firmware-flash`; on real hardware the
+same SysTick registers count true CPU cycles, with the DWT enabled as a
+cross-check. See `firmware/stm32f4-bench/bench_results.json`.
 
 **Impact**: These are **instruction counts, not measured hardware cycles**:
 `cycles ≈ insns` only under an IPC=1 assumption for the in-order Cortex-M4,
@@ -110,11 +113,12 @@ instructions). Cross-platform timing claims should quote QEMU numbers as a
 deterministic lower bound and relative-cost ranking only.
 
 **Mitigation**: The firmware is flash-ready for the STM32F4 Discovery
-(`st-flash write bench.bin 0x08000000`); the same binary measures true CPU
-cycles via DWT CYCCNT on hardware (QEMU does not emulate the DWT — probed
-and documented in the firmware README). Until that capture exists, no
-cycles-per-epoch or per-packet µs claim may be quoted as a hardware
-measurement.
+(`make firmware-flash` → `st-flash write bench.bin 0x08000000`, console on
+USART2 @ 115200 8N1 — no debugger required); on hardware the SysTick counts
+true CPU cycles at CLKSOURCE=CPU and the DWT CYCCNT provides an independent
+cross-check (QEMU does not emulate the DWT — probed and documented in the
+firmware README). Until that capture exists, no cycles-per-epoch or
+per-packet µs claim may be quoted as a hardware measurement.
 
 ## Randomness and Reproducibility Boundary
 

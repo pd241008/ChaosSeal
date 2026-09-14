@@ -26,7 +26,7 @@ SIM     := $(CURDIR)/netsim_v2/chaoseal-sim
         reproduce-commit-sweep reproduce-corruption reproduce-membership \
         reproduce-spectrum reproduce-lambda-min reproduce-robustness \
         reproduce-commit-loss reproduce-bootstrap reproduce-analysis \
-        firmware-bench reproduce-all clean
+        firmware-bench firmware-hw firmware-flash reproduce-all clean
 
 help:
 	@echo "Targets:"
@@ -48,6 +48,8 @@ help:
 	@echo "  make reproduce-analysis     regenerate stats CSVs + figures from the archive"
 	@echo "  make reproduce-all          everything except the long spectrum horizons"
 	@echo "  make firmware-bench         build no_std Cortex-M4 bench + run under QEMU (skips run if QEMU absent)"
+	@echo "  make firmware-hw            build the hardware image (UART console) + bench.bin"
+	@echo "  make firmware-flash         flash bench.bin to the STM32F4 via st-flash (Midas-style)"
 	@echo "  make clean                  remove fresh outputs"
 
 # ---------------------------------------------------------------------------
@@ -146,12 +148,12 @@ reproduce-analysis:
 	$(PY) analysis/v4_generalization.py
 
 # --- Cortex-M4 firmware benchmark (QEMU-first) ------------------------------
-# Builds the no_std firmware (core_v2 sources vendored verbatim) and, when
-# qemu-system-arm is installed, runs it: deterministic instruction counts via
-# SysTick under -icount shift=0. See firmware/stm32f4-bench/README.md and
-# bench_results.json. Without QEMU the firmware still builds (flash-ready).
+# QEMU build uses the semihosting console (--features qemu; semihosting
+# BKPTs would hard-fault real hardware without a debugger). The default
+# build is the hardware image: bare-metal USART2 console + LEDs + 168 MHz
+# PLL init, Midas-artifact style. See firmware/stm32f4-bench/README.md.
 firmware-bench:
-	cd firmware/stm32f4-bench && cargo build --release
+	cd firmware/stm32f4-bench && cargo build --release --features qemu --no-default-features
 	@if command -v qemu-system-arm >/dev/null 2>&1; then \
 	  cd firmware/stm32f4-bench && qemu-system-arm -machine netduinoplus2 -nographic \
 	    -semihosting-config enable=on,target=native -icount shift=0 \
@@ -159,6 +161,19 @@ firmware-bench:
 	else \
 	  echo "qemu-system-arm not found: firmware built (flash-ready), emulated run skipped"; \
 	fi
+
+# Hardware image + Midas-style flashing (ST-LINK attached to the host; on
+# WSL attach it via usbipd first). Console: USART2 @ 115200 8N1 on PA2/PA3.
+firmware-hw:
+	cd firmware/stm32f4-bench && cargo build --release
+	arm-none-eabi-objcopy -O binary \
+	  firmware/stm32f4-bench/target/thumbv7em-none-eabihf/release/stm32f4-bench \
+	  firmware/stm32f4-bench/bench.bin
+	arm-none-eabi-size firmware/stm32f4-bench/target/thumbv7em-none-eabihf/release/stm32f4-bench
+
+firmware-flash: firmware-hw
+	st-flash write firmware/stm32f4-bench/bench.bin 0x08000000
+	@echo "Console: USART2 @ 115200 8N1 on PA2 (TX) — e.g. 'screen /dev/ttyUSB0 115200'"
 
 # --- Everything except the long spectrum horizons ---------------------------
 reproduce-all: reproduce-rsweep reproduce-loss-sweep reproduce-size-sweep \

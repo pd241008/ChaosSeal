@@ -184,9 +184,9 @@ make firmware-bench
 
 **Expected output** (QEMU 11.x, `-machine netduinoplus2 -icount shift=0`):
 three `[ok]` gate lines (RFC 4231 HMAC KAT, AES-GCM roundtrip, HMAC verify),
-then deterministic `[bench]` lines — epoch RK4 step ≈ 90,703 ticks,
-Benettin Lyapunov step ≈ 104,461, HKDF key ≈ 3,771, AES-256-GCM(1024 B) ≈
-41,757, HMAC(1040 B) ≈ 7,896, packet total ≈ 53,424 — and
+then deterministic `[bench]` lines — epoch RK4 step ≈ 90,704 ticks,
+Benettin Lyapunov step ≈ 104,461, HKDF key ≈ 3,743, AES-256-GCM(1024 B) ≈
+41,757, HMAC(1040 B) ≈ 7,896, packet total ≈ 53,396 — and
 `[done] all gates passed`. Units are guest instructions (QEMU-icount),
 not measured hardware cycles; see `firmware/stm32f4-bench/bench_results.json`
 and the Limitations hardware section.
