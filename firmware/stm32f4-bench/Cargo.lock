@@ -292,12 +292,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
 
 [[package]]
-name = "panic-halt"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a513e167849a384b7f9b746e517604398518590a9142f4846a32e3c2a4de7b11"
-
-[[package]]
 name = "panic-semihosting"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -401,7 +395,6 @@ dependencies = [
  "hmac",
  "libm",
  "linked_list_allocator",
- "panic-halt",
  "panic-semihosting",
  "sha2",
  "zeroize",
