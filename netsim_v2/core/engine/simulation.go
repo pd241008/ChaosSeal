@@ -98,6 +98,8 @@ func (s *Simulation) surveyLinks() *LinkStats {
 
 	var (
 		visibleCount    int
+		anyVisibleCount int
+		satsInViewSum   int
 		totalLatency    float64
 		maxLatency      float64
 		lossCount       int
@@ -109,11 +111,13 @@ func (s *Simulation) surveyLinks() *LinkStats {
 	)
 
 	for t := 0.0; t <= s.cfg.DurationSec; t += surveyStepSec {
+		inView := 0
 		for i, sat := range s.sats {
 			elev := s.gs.ElevationDeg(sat, t)
 			visible := elev >= s.cfg.MinElevDeg
 			if visible {
 				visibleCount++
+				inView++
 			}
 			samples++
 
@@ -143,6 +147,10 @@ func (s *Simulation) surveyLinks() *LinkStats {
 				prevVisible[i] = visible
 			}
 		}
+		if inView > 0 {
+			anyVisibleCount++
+		}
+		satsInViewSum += inView
 	}
 
 	// Run the per-satellite loss channels over the same window.
@@ -170,6 +178,11 @@ func (s *Simulation) surveyLinks() *LinkStats {
 		stats.VisiblePct = float64(visibleCount) / float64(samples) * 100
 		stats.MeanLatencyMs = totalLatency / float64(samples)
 		stats.MaxLatencyMs = maxLatency
+		nSteps := samples / len(s.sats)
+		if nSteps > 0 {
+			stats.AnyVisiblePct = float64(anyVisibleCount) / float64(nSteps) * 100
+			stats.MeanSatsInView = float64(satsInViewSum) / float64(nSteps)
+		}
 	}
 	if samples > 0 {
 		stats.LossRate = float64(lossCount) / float64(samples)

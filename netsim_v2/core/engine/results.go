@@ -36,6 +36,12 @@ type Event struct {
 type LinkStats struct {
 	Satellites       int       `json:"satellites"`
 	VisiblePct       float64   `json:"visible_pct"`
+	// AnyVisiblePct is the fraction of survey samples in which at least one
+	// satellite is above the minimum elevation — the operationally meaningful
+	// contact-opportunity metric for a 24-sat LEO shell (typically tens of
+	// percent, vs VisiblePct's per-(satellite, time)-sample few-percent scale).
+	AnyVisiblePct  float64 `json:"any_visible_pct"`
+	MeanSatsInView float64 `json:"mean_sats_in_view"`
 	MeanLatencyMs    float64   `json:"mean_latency_ms"`
 	MaxLatencyMs     float64   `json:"max_latency_ms"`
 	LossRate         float64   `json:"loss_rate"`
