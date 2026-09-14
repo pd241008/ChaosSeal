@@ -26,7 +26,8 @@ SIM     := $(CURDIR)/netsim_v2/chaoseal-sim
         reproduce-commit-sweep reproduce-corruption reproduce-membership \
         reproduce-spectrum reproduce-lambda-min reproduce-robustness \
         reproduce-commit-loss reproduce-bootstrap reproduce-analysis \
-        firmware-bench firmware-hw firmware-flash firmware-failtest reproduce-all clean
+        firmware-bench firmware-hw firmware-flash firmware-capture firmware-failtest \
+        reproduce-all clean
 
 help:
 	@echo "Targets:"
@@ -50,6 +51,7 @@ help:
 	@echo "  make firmware-bench         build no_std Cortex-M4 bench + run under QEMU (skips run if QEMU absent)"
 	@echo "  make firmware-hw            build the hardware image (UART console) + bench.bin"
 	@echo "  make firmware-flash         flash bench.bin to the STM32F4 via st-flash (Midas-style)"
+	@echo "  make firmware-capture       flash + OpenOCD SRAM-dump capture + parse (no serial adapter needed)"
 	@echo "  make firmware-failtest      negative test: forced gate failure must print [fail] and never [done]"
 	@echo "  make clean                  remove fresh outputs"
 
@@ -173,8 +175,17 @@ firmware-hw:
 	arm-none-eabi-size firmware/stm32f4-bench/target/thumbv7em-none-eabihf/release/stm32f4-bench
 
 firmware-flash: firmware-hw
-	st-flash write firmware/stm32f4-bench/bench.bin 0x08000000
+	st-flash --connect-under-reset write firmware/stm32f4-bench/bench.bin 0x08000000
 	@echo "Console: USART2 @ 115200 8N1 on PA2 (TX) — e.g. 'screen /dev/ttyUSB0 115200'"
+
+# Full hardware capture (Midas dump_image pattern): flash, run, let OpenOCD
+# poll the SRAM2 done flag, halt, dump, parse. No USB-serial adapter needed;
+# the ST-LINK must be attached (on WSL: usbipd attach --wsl --busid <id>).
+# The parser fails hard if the SysTick/DWT probes disagree >5% (clock issue)
+# or any gate fails on-target.
+firmware-capture: firmware-flash
+	openocd -f firmware/stm32f4-bench/openocd-capture.cfg
+	$(PY) scripts/parse_bench_dump.py --json firmware/stm32f4-bench/bench_hw.json
 
 # Negative test: corrupts the KAT expectation so Gate 1 must fail. Verifies
 # the failure path (console [fail], red LED on HW, non-zero exit in QEMU).
