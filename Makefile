@@ -26,7 +26,7 @@ SIM     := $(CURDIR)/netsim_v2/chaoseal-sim
         reproduce-commit-sweep reproduce-corruption reproduce-membership \
         reproduce-spectrum reproduce-lambda-min reproduce-robustness \
         reproduce-commit-loss reproduce-bootstrap reproduce-analysis \
-        reproduce-all clean
+        firmware-bench reproduce-all clean
 
 help:
 	@echo "Targets:"
@@ -47,6 +47,7 @@ help:
 	@echo "  make reproduce-bootstrap    bootstrap CI on the crossover point"
 	@echo "  make reproduce-analysis     regenerate stats CSVs + figures from the archive"
 	@echo "  make reproduce-all          everything except the long spectrum horizons"
+	@echo "  make firmware-bench         build no_std Cortex-M4 bench + run under QEMU (skips run if QEMU absent)"
 	@echo "  make clean                  remove fresh outputs"
 
 # ---------------------------------------------------------------------------
@@ -143,6 +144,21 @@ reproduce-bootstrap:
 reproduce-analysis:
 	$(PY) analysis/v3_analysis.py
 	$(PY) analysis/v4_generalization.py
+
+# --- Cortex-M4 firmware benchmark (QEMU-first) ------------------------------
+# Builds the no_std firmware (core_v2 sources vendored verbatim) and, when
+# qemu-system-arm is installed, runs it: deterministic instruction counts via
+# SysTick under -icount shift=0. See firmware/stm32f4-bench/README.md and
+# bench_results.json. Without QEMU the firmware still builds (flash-ready).
+firmware-bench:
+	cd firmware/stm32f4-bench && cargo build --release
+	@if command -v qemu-system-arm >/dev/null 2>&1; then \
+	  cd firmware/stm32f4-bench && qemu-system-arm -machine netduinoplus2 -nographic \
+	    -semihosting-config enable=on,target=native -icount shift=0 \
+	    -kernel target/thumbv7em-none-eabihf/release/stm32f4-bench; \
+	else \
+	  echo "qemu-system-arm not found: firmware built (flash-ready), emulated run skipped"; \
+	fi
 
 # --- Everything except the long spectrum horizons ---------------------------
 reproduce-all: reproduce-rsweep reproduce-loss-sweep reproduce-size-sweep \

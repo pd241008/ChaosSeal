@@ -1,0 +1,11 @@
+[build]
+target = "thumbv7em-none-eabihf"
+
+[target.'cfg(all(target_arch = "arm", target_os = "none"))']
+# STM32F407 (netduinoplus2 = STM32F405, same M4F core) with semihosting console
+runner = "qemu-system-arm -machine netduinoplus2 -nographic -semihosting-config enable=on,target=native -icount shift=0 -kernel"
+# cortex-m-rt does not auto-inject linker args: link.x (which INCLUDE!s
+# memory.x) must be passed explicitly.
+rustflags = [
+  "-C", "link-arg=-Tlink.x",
+]

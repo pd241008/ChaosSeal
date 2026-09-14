@@ -139,6 +139,7 @@ For reviewers and researchers, the repository is structured to transparently map
 ├── netsim/                      # Network Simulator (Go)
 │   └── main.go                  # CLI entry point for the simulation harness
 ├── analysis/                    # Python scripts for figures and stats
+├── firmware/stm32f4-bench/      # Cortex-M4 no_std benchmark of the core hot paths (QEMU-first; flash-ready)
 └── results/                     # Raw JSON output from simulations
 ```
 

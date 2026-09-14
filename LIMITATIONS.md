@@ -88,19 +88,33 @@ constant factors.
 
 ## No Hardware Benchmark
 
-**Status**: Open — the only remaining Future Work item.
+**Status**: Partially closed — firmware port complete, QEMU instruction
+counts measured, physical-hardware capture still pending.
 
-**Description**: The STM32/Cortex-M4 (or ESP32) benchmark of the Q32.32 RK4 +
-HKDF + AES-GCM path has not been run. Porting `core_v2/src/kinematics/` and
-`core_v2/src/crypto/` to `no_std` + `cortex-m-rt` is required, plus flashing
-to real hardware (or QEMU) and measuring cycles-per-epoch and per-packet
-AEAD cost.
+**Description**: The `no_std` + `cortex-m-rt` port is done
+(`firmware/stm32f4-bench`): it compiles the core_v2 kinematics and crypto
+sources **verbatim** (deltas limited to import paths, libm for std-gated
+f64 math, and no OS-entropy nonce) with crypto crates pinned to the
+`core_v2/Cargo.lock` versions. All correctness gates pass on the emulated
+target (RFC 4231 HMAC KAT, AES-256-GCM roundtrip, HMAC commitment verify),
+and the QEMU Cortex-M4 (`netduinoplus2`, STM32F405-class) run yields
+deterministic instruction counts (SysTick under `-icount shift=0`):
+~90.7k ticks/RK4-step (10.88 G/epoch ≈ 5.4% of a 1200 s epoch at 168 MHz
+IPC=1) and 53.4k ticks per packet (HKDF + AES-GCM 1024 B + HMAC). See
+`firmware/stm32f4-bench/bench_results.json`.
 
-**Impact**: Cross-platform timing claims are supported by Q32.32 determinism
-arguments, not by measured hardware cycles.
+**Impact**: These are **instruction counts, not measured hardware cycles**:
+`cycles ≈ insns` only under an IPC=1 assumption for the in-order Cortex-M4,
+and real-hardware cycles will be higher (flash wait states, multi-cycle
+instructions). Cross-platform timing claims should quote QEMU numbers as a
+deterministic lower bound and relative-cost ranking only.
 
-**Mitigation**: All code-side work is complete and reproducible; only the
-hardware measurement remains.
+**Mitigation**: The firmware is flash-ready for the STM32F4 Discovery
+(`st-flash write bench.bin 0x08000000`); the same binary measures true CPU
+cycles via DWT CYCCNT on hardware (QEMU does not emulate the DWT — probed
+and documented in the firmware README). Until that capture exists, no
+cycles-per-epoch or per-packet µs claim may be quoted as a hardware
+measurement.
 
 ## Randomness and Reproducibility Boundary
 
