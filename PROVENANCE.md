@@ -63,7 +63,7 @@ Lyapunov estimator path; predates the metastability redesign. The v2
 generation (`core_v2/`, `netsim_v2/`) implements the bounded wrapped coupling
 and the corrected Benettin tangent update.
 
-**Archive**: Retained for provenance. `run_sweep.sh` and `run_sweep_v2.sh`
+**Archive**: Retained for provenance. `scripts/legacy/run_sweep.sh` and `scripts/legacy/run_sweep_v2.sh`
 drive this generation; `results/` and `results_v2/` hold its outputs. No
 canonical claim uses them.
 
@@ -84,7 +84,7 @@ definitions (still the definitional reference for goodput/latency).
 |---|---|
 | `core_v2/` | Protocol engine: Q32.32 RK4, bounded wrapped coupling (c=1.0), Benettin λ + full spectrum + KS, HKDF→AES-256-CTR/GCM, HMAC-SHA256, BEE key tree, join protocol |
 | `netsim_v2/` | LEO simulation: visibility windows, elevation-dependent latency, Gilbert-Elliott bursts; chaosseal/counter/BPSec baselines; corruption + membership experiments |
-| `run_sweep_v3.sh` | Canonical pipeline driver (all tiers) |
+| `scripts/run_sweep_v3.sh` | Canonical pipeline driver (all tiers) |
 | `analysis/v3_analysis.py` | Canonical aggregation (stats CSVs + figures) |
 | `analysis/{commit_loss_sweep,bootstrap_crossover,v4_generalization,burst_model}.py` | Claim-specific analyses (C5, C6, C10/C3, Figure 7) |
 | `scripts/verify_*.py`, `scripts/validate_benettin.py` | Independent verification gates |
