@@ -45,6 +45,12 @@ const USART_CR1: *mut u32 = (USART2_BASE + 0x0C) as *mut u32;
 const DEMCR: *mut u32 = (CORESIGHT_BASE + 0xFC) as *mut u32; // 0xE000EDFC
 const DWT_CTRL: *mut u32 = 0xE000_1000 as *mut u32;
 const DWT_CYCCNT: *mut u32 = 0xE000_1004 as *mut u32;
+// DCache clean-by-MVA (RM0090 C7.7): the debugger's AHB-AP reads SRAM
+// directly and does NOT snoop the F407's write-back DCache, so every byte
+// published for dump_image must be cleaned to SRAM first (Midas never hit
+// this because its C code placed its arrays in no-cache-able sections via
+// scatter-loading; we clean explicitly instead).
+const DCCMVAC: *mut u32 = 0xE000_EF5C as *mut u32;
 
 // RCC_CR bits
 const RCC_CR_HSION: u32 = 1 << 0;
@@ -222,5 +228,98 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
     led_on(2);
     loop {
         core::hint::spin_loop();
+    }
+}
+
+// ---------------------------------------------------------------------------
+// SRAM bench log (Midas openocd/dump_image pattern)
+// ---------------------------------------------------------------------------
+// The hardware console (USART2 on PA2) needs a USB-serial adapter that the
+// ST-LINK/V2 cannot provide. Instead, like Midas's openocd/dump_image flow,
+// the firmware mirrors every console line into a reserved SRAM2 region with
+// a magic header and a status word; OpenOCD resets/runs the board, polls the
+// status, halts and `dump_image`s the region for the host parser
+// (scripts/parse_bench_dump.py). No serial adapter needed.
+
+/// Magic in the log header: "CSBL" little-endian.
+const BENCHLOG_MAGIC: u32 = 0x4353_424C;
+const BENCHLOG_BASE: usize = 0x2001_C000; // SRAM2 (reserved in memory.x)
+const BENCHLOG_DATA: usize = BENCHLOG_BASE + 0x10;
+const BENCHLOG_MAX: usize = 4096;
+
+/// Status words published in the header (schema also in scripts/parse_bench_dump.py).
+const BENCHLOG_STATUS_OK: u32 = 1;
+const BENCHLOG_STATUS_FAIL: u32 = 2;
+
+static mut BENCHLOG_POS: usize = 0;
+
+/// Zero the header and position (called at console init so a soft-reset
+/// re-run never appends to a stale log). Body bytes are cleaned per-line
+/// as they are written.
+pub fn benchlog_reset() {
+    unsafe {
+        BENCHLOG_POS = 0;
+        for i in 0..(BENCHLOG_MAX + 0x10) {
+            (BENCHLOG_BASE as *mut u8).add(i).write_volatile(0);
+        }
+        let mut a = BENCHLOG_BASE;
+        while a < BENCHLOG_BASE + 0x10 + 32 {
+            dcache_clean_mva(a);
+            a += 32;
+        }
+    }
+}
+
+/// Clean one address's DCache line to SRAM (DMB + DCCMVAC + DSB per RM0090).
+#[inline(always)]
+fn dcache_clean_mva(p: usize) {
+    unsafe {
+        core::arch::asm!("dmb");
+        core::ptr::write_volatile(DCCMVAC, (p & !0x1F) as u32);
+        core::arch::asm!("dsb");
+    }
+}
+
+fn benchlog_write_u32(addr: usize, v: u32) {
+    unsafe { (addr as *mut u32).write_volatile(v) };
+    dcache_clean_mva(addr);
+}
+
+/// Append a line to the SRAM log (no trailing newline needed; parser splits
+/// on \n and the header carries the exact length).
+pub fn benchlog_line(line: &str) {
+    unsafe {
+        let pos = BENCHLOG_POS;
+        let room = BENCHLOG_MAX.saturating_sub(pos);
+        let n = line.len().min(room.saturating_sub(1));
+        if n > 0 {
+            let dst = (BENCHLOG_DATA + pos) as *mut u8;
+            core::ptr::copy_nonoverlapping(line.as_ptr(), dst, n);
+            // Clean the full line, cache-line granular at both ends.
+            let start = (BENCHLOG_DATA + pos) & !0x1F;
+            let end = BENCHLOG_DATA + pos + n;
+            let mut a = start;
+            while a < end + 32 {
+                dcache_clean_mva(a);
+                a += 32;
+            }
+            BENCHLOG_POS = pos + n + 1; // +1 for the parser's \n separator
+            let _ = core::ptr::write_volatile((BENCHLOG_DATA + pos + n) as *mut u8, b'\n');
+            dcache_clean_mva(BENCHLOG_DATA + pos + n);
+        }
+    }
+}
+
+/// Publish the header: magic + final status + exact log length. The status
+/// store is the done flag OpenOCD polls; it must go out last.
+pub fn benchlog_publish(ok: bool) {
+    unsafe {
+        let len = core::ptr::addr_of!(BENCHLOG_POS).read();
+        benchlog_write_u32(BENCHLOG_BASE, BENCHLOG_MAGIC);
+        benchlog_write_u32(
+            BENCHLOG_BASE + 4,
+            if ok { BENCHLOG_STATUS_OK } else { BENCHLOG_STATUS_FAIL },
+        );
+        benchlog_write_u32(BENCHLOG_BASE + 8, len as u32);
     }
 }

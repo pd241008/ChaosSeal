@@ -20,6 +20,12 @@
 //! `-icount shift=0` ticks are deterministic guest instructions (QEMU
 //! does not emulate the DWT for this machine — probed). All reported
 //! numbers state which clock produced them.
+//!
+//! HW capture: the ST-LINK/V2 has no VCP and PA2 needs a USB-serial
+//! adapter, so the hw console ALSO mirrors every line into a reserved
+//! SRAM2 region with a done flag (Midas-artifact openocd dump_image
+//! pattern). `make firmware-capture` resets/runs the board, halts it on
+//! the flag, dumps SRAM and parses the log — no serial adapter needed.
 
 #![no_std]
 #![no_main]
@@ -129,6 +135,7 @@ mod console {
 #[cfg(all(feature = "hw", not(feature = "qemu")))]
 mod console {
     use super::hw;
+    use alloc::format;
 
     // Small fixed buffer for formatted lines (no formatting machinery on HW).
     const BUFSZ: usize = 128;
@@ -178,6 +185,7 @@ mod console {
         hw::dwt_enable();
         hw::led_init();
         hw::uart2_init();
+        hw::benchlog_reset();
         // Boot LED: green ON until done (Midas pattern: PD12 boot/done).
         hw::led_on(0);
     }
@@ -189,6 +197,7 @@ mod console {
         l.send();
         l.push("\r\n");
         l.send();
+        hw::benchlog_line(&format!("[ok] {}", line));
     }
 
     pub fn info(line: &str) {
@@ -196,6 +205,7 @@ mod console {
         l.push(line);
         l.push("\r\n");
         l.send();
+        hw::benchlog_line(line);
     }
 
     pub fn bench(label: &str, ticks: u64, tag: &str) {
@@ -208,6 +218,7 @@ mod console {
         l.push(tag);
         l.push("\r\n");
         l.send();
+        hw::benchlog_line(&format!("[bench] {} {} {}", label, ticks, tag));
     }
 
     pub fn bail(msg: &str) -> ! {
@@ -216,8 +227,10 @@ mod console {
         l.push(msg);
         l.push("\r\n");
         l.send();
+        hw::benchlog_line(&format!("[fail] {}", msg));
         hw::led_off(0); // green off
         hw::led_on(2); // red steady (Midas error indicator)
+        hw::benchlog_publish(false); // done flag, fail status
         loop {
             core::hint::spin_loop();
         }
@@ -227,7 +240,9 @@ mod console {
         let mut l = Line::new();
         l.push("[done] all gates passed\r\n");
         l.send();
+        hw::benchlog_line("[done] all gates passed");
         hw::led_off(0); // green off = done (Midas pattern)
+        hw::benchlog_publish(true); // done flag, success status
         loop {
             core::hint::spin_loop();
         }
