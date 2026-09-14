@@ -39,8 +39,7 @@ use linked_list_allocator::LockedHeap;
 use cortex_m_semihosting::{debug, hprintln};
 #[cfg(all(feature = "qemu", not(feature = "hw")))]
 use panic_semihosting as _;
-#[cfg(all(feature = "hw", not(feature = "qemu")))]
-use panic_halt as _;
+// HW panic handling: custom #[panic_handler] in src/hw.rs (red LED + halt).
 
 use vendor::crypto::{
     aes_gcm::AesGcmCipher, derive_packet_key, hmac_commitment, hmac_sha256, verify_hmac,
@@ -48,6 +47,10 @@ use vendor::crypto::{
 use vendor::fixed::Q32_32;
 use vendor::kinematics::{MultiPendulum, Rk4Integrator};
 use vendor::lyapunov::LyapunovEstimator;
+
+/// failtest: flip one bit of the expected KAT tag so Gate 1 must fail. This
+/// exercises the failure path itself — console `[fail]` line, red LED (HW),
+/// non-zero QEMU exit — proving the gates can actually fail.
 
 #[global_allocator]
 static ALLOCATOR: LockedHeap = LockedHeap::empty();
@@ -309,6 +312,12 @@ fn main() -> ! {
         0x2E, 0x32, 0xCF, 0xF7,
     ];
     let got = hmac_sha256::compute(&kat_key, kat_msg);
+    #[cfg(feature = "failtest")]
+    let kat_expected: [u8; 32] = {
+        let mut e = kat_expected;
+        e[0] ^= 0x01;
+        e
+    };
     if got != kat_expected {
         bail("HMAC-SHA256 RFC 4231 KAT mismatch");
     }

@@ -209,3 +209,18 @@ fn led_error() -> ! {
         core::hint::spin_loop();
     }
 }
+
+/// Panic handler for the hardware build (Midas semantics: red LED PD14
+/// steady, then halt). Replaces `panic-halt` so any unexpected panic —
+/// including pre-console bring-up faults — is visible on the board. If the
+/// panic fires before `led_init()`, GPIO is not clocked yet and the LED
+/// silently stays off; the bounded-timeout `wait_set` paths call
+/// `led_error()` directly after `led_init()` has run.
+#[cfg(all(feature = "hw", not(feature = "qemu")))]
+#[panic_handler]
+fn panic(_info: &core::panic::PanicInfo) -> ! {
+    led_on(2);
+    loop {
+        core::hint::spin_loop();
+    }
+}

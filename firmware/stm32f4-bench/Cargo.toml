@@ -13,8 +13,6 @@ linked_list_allocator = "0.10"
 # would hard-fault on the BKPT semihosting call).
 cortex-m-semihosting = { version = "0.5", optional = true }
 panic-semihosting = { version = "0.6", features = ["exit"], optional = true }
-# HW builds: panic = red LED + halt (no debugger required), Midas-style.
-panic-halt = { version = "1.0", optional = true }
 
 # Crypto pinned to core_v2/Cargo.lock versions (aes 0.8.4, aes-gcm 0.10.3,
 # hkdf 0.12.4, hmac 0.12.1, sha2 0.10.9, zeroize 1.9.0). std features off.
@@ -39,8 +37,12 @@ zeroize = { version = "1.9.0", default-features = false, features = ["alloc", "d
 #                    real HW), no clock init (QEMU boots at the clock it has)
 [features]
 default = ["hw"]
-hw = ["dep:panic-halt"]
+hw = []
 qemu = ["dep:cortex-m-semihosting", "dep:panic-semihosting"]
+# Negative test: corrupt the KAT expectation and force a gate failure, so
+# the failure path itself (console `[fail]` line, red LED, no `[done]`) is
+# exercised rather than assumed. QEMU-verified via `make firmware-failtest`.
+failtest = []
 
 [[bin]]
 name = "stm32f4-bench"
