@@ -1,0 +1,50 @@
+{
+  "platform": {
+    "emulator": "QEMU 11.1.1",
+    "machine": "netduinoplus2 (STM32F405, Cortex-M4F + FPU, 168 MHz class)",
+    "target_board": "STM32F4 Discovery (STM32F407VG) — same core, 1 MB flash / 192 KB RAM",
+    "icount": "shift=0 (virtual clock advances 1 ns per guest instruction)",
+    "timing_source": "SysTick downcounter, CLKSOURCE=CPU, no interrupt",
+    "timing_semantics": "QEMU: deterministic guest instruction counts. Hardware: true CPU cycles. cycles ≈ insns only under IPC=1 for in-order Cortex-M4.",
+    "dwt_status": "NOT emulated by QEMU for this machine (CYCCNT frozen; probed and confirmed) — hence SysTick"
+  },
+  "provenance": {
+    "core_source": "core_v2 @ 29be3b5 (merge of PR #20)",
+    "vendoring": "src/vendor/ — verbatim sources, deltas limited to import paths (std::ops->core::ops, alloc::vec), libm for std-gated f64 math (exp/ln/atan2/round), and removal of OS-entropy nonce generation",
+    "crypto_versions": "pinned to core_v2/Cargo.lock: aes 0.8.4, aes-gcm 0.10.3, hkdf 0.12.4, hmac 0.12.1, sha2 0.10.9, zeroize 1.9.0 (std features off)"
+  },
+  "correctness_gates": {
+    "hmac_sha256_rfc4231_case1": "PASS (byte-exact KAT on target)",
+    "aes256gcm_1024B_roundtrip": "PASS (ciphertext len + tag verify + decrypt match)",
+    "hmac_commitment_verify_roundtrip": "PASS"
+  },
+  "determinism": "bench/ratio lines byte-identical across independent QEMU runs (icount)",
+  "canonical_parameters": {
+    "pendulum": { "n": 3, "mass": 1.0, "length": 1.0, "damping": 0.02, "coupling": 1.0, "form": "wrapped atan2(sin dtheta, cos dtheta)" },
+    "integrator": { "method": "RK4", "dt_s": 0.01 },
+    "epoch_s": 1200,
+    "payload_bytes": 1024
+  },
+  "results": {
+    "units": "tck = SysTick ticks = guest instructions under QEMU -icount shift=0",
+    "epoch_rk4_step": { "ticks_per_step": 90703, "us_at_168MHz_HW_assuming_IPC1": 539, "steps_per_epoch": 120000, "epoch_total_Mticks": 10884 },
+    "lyapunov_benettin": { "ticks_per_step": 104461, "us_at_168MHz_HW_assuming_IPC1": 621, "note": "timed over a 100-step run at a distinct IC so LLVM cannot CSE it against the untimed full run; lambda_1 sanity ~0.198 nats/s at 2000 steps (design-stage 0.405 is a longer-horizon value)" },
+    "hkdf_packet_key": { "ticks_per_op": 3771, "us_at_168MHz": 22 },
+    "aes256gcm_enc_1024B": { "ticks_per_op": 41757, "us_at_168MHz": 248, "note": "software AES (no HW accelerator on STM32F4); includes per-call key schedule, matching core_v2 AesGcmCipher API" },
+    "hmac_commit_1024B": { "ticks_per_op": 7896, "us_at_168MHz": 47 },
+    "packet_total": { "ticks": 53424, "us_at_168MHz": 318, "composition": "HKDF derive + AES-256-GCM encrypt(1024B) + HMAC-SHA256 over 1040B ct" },
+    "epoch_maintenance": { "ticks_per_epoch": 10884360000, "packet_budget_equivalent": 203735 }
+  },
+  "interpretation": {
+    "epoch_overhead": "One epoch of Q32.32 RK4 key-schedule maintenance costs ~10.9 G ticks (~65 s at 168 MHz IPC=1), i.e. ~5.4% of the 1200 s epoch wall-clock — and is the same work the desktop pipeline performs, so no additional per-packet key-derivation burden exists beyond the 53.4k-tick packet path.",
+    "per_packet_cost": "53.4k ticks/pkt ≈ 318 us at 168 MHz IPC=1 for the full derive+encrypt+commit chain on a 1024 B payload.",
+    "hardware_pending": "These are QEMU-icount instruction counts. A real STM32F4 Discovery run with DWT CYCCNT will measure true cycles (expect higher than IPC=1 due to flash wait states and multi-cycle instructions). The firmware is flash-ready; only the on-hardware capture remains."
+  },
+  "firmware": {
+    "crate": "firmware/stm32f4-bench",
+    "build": "cd firmware/stm32f4-bench && cargo build --release",
+    "run_qemu": "qemu-system-arm -machine netduinoplus2 -nographic -semihosting-config enable=on,target=native -icount shift=0 -kernel target/thumbv7em-none-eabihf/release/stm32f4-bench",
+    "run_hardware": "arm-none-eabi-objcopy -O binary target/thumbv7em-none-eabihf/release/stm32f4-bench bench.bin && st-flash write bench.bin 0x08000000  # semihosting console via openocd or SWO",
+    "footprint": { "text_bytes": 128184, "bss_bytes": 49192 }
+  }
+}
