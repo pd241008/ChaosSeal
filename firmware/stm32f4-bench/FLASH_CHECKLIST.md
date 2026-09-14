@@ -1,17 +1,18 @@
 # Flash & Capture Checklist — STM32F4 Discovery
 
 Everything to do at the board, in order. Total time: ~5 minutes.
-No debugger required for the run itself (UART console).
+No debugger required for the run itself, and **no serial adapter is needed
+for capture** — the firmware mirrors its console into SRAM and OpenOCD dumps
+it (`make firmware-capture`, step 4b). The UART console (step 4a) is only
+for live watching.
 
 ## 0. What you need
 
 - STM32F4 Discovery (STM32F407VG) + mini-USB cable (ST-LINK side, CN1)
-- A 3.3 V USB-serial adapter for the console:
-  - PA2 (USART2 TX) → adapter RX
-  - GND → adapter GND
-  - (PA3/RX unused; TX-only console)
-- Host tools: `st-flash` (stlink-tools), `arm-none-eabi-objcopy`, a serial
-  terminal (`screen`, `minicom`, or PuTTY on Windows)
+- *Optional* (live console only): a 3.3 V USB-serial adapter —
+  PA2 (USART2 TX) → adapter RX, GND → GND (PA3/RX unused; TX-only console)
+- Host tools: `st-flash` (stlink-tools), `openocd`, `arm-none-eabi-objcopy`,
+  and only for the live console a serial terminal (`screen`, `minicom`, PuTTY)
 
 ## 1. Build the hardware image
 
@@ -36,17 +37,38 @@ Size report should show roughly: text ~110 KB, bss ~49 KB
 ## 3. Flash
 
 ```bash
-make firmware-flash   # = st-flash write bench.bin 0x08000000
+make firmware-flash   # = st-flash --connect-under-reset write bench.bin 0x08000000
 ```
 
-Expected tail: `Flash written and verified! happy Hacking` (or similar).
+Expected tail: `Flash written and verified! jolly good!` (or similar).
+If you get `Can not connect to target`, the `--connect-under-reset` flag
+(hardware reset line) is the fix — already in the Makefile target.
 
-## 4. Wire the console + capture
+## 4a. Live console (optional — needs the USB-serial adapter)
 
 ```bash
 screen /dev/ttyUSB0 115200    # or: minicom -D /dev/ttyUSB0 -b 115200
 ```
 (Exit screen: Ctrl-A then K.)
+
+## 4b. Serial-free capture (no adapter — OpenOCD SRAM dump)
+
+```bash
+make firmware-capture
+```
+
+This flashes, resets/runs the board, polls the SRAM2 done flag, halts,
+dumps the bench log, and parses it to `bench_hw.json`. The parser fails
+hard if the SysTick/DWT probes disagree >5% or any gate fails. Expected
+tail:
+
+```
+bench-log captured: status=1 len=869 -> /tmp/chaosseal_bench_dump.bin
+status: 1 (all gates passed)
+  ... [ok]/[bench] lines ...
+probe cross-check: systick=1200006 dwt=1200011 rel=0.00% OK
+json written: firmware/stm32f4-bench/bench_hw.json
+```
 
 ## 5. Reset the board (black button, NRST) and watch
 
@@ -57,7 +79,8 @@ screen /dev/ttyUSB0 115200    # or: minicom -D /dev/ttyUSB0 -b 115200
 | Green OFF | done successfully (`[done]` line printed) |
 | Red (PD14) steady | failure — a gate failed or a panic occurred |
 
-**Expected serial output** (order matters):
+**Expected output** (order matters; values from the archived hardware
+capture — your board should land within a few % on the same model):
 
 ```
 [probe] ... SysTick + DWT dual-clock deltas   (two bench lines)
@@ -82,21 +105,24 @@ screen /dev/ttyUSB0 115200    # or: minicom -D /dev/ttyUSB0 -b 115200
 
 On hardware, SysTick ticks are **true CPU cycles** (168 MHz after the PLL
 init) and the `systick_probe` / `dwt_probe` lines should be within a few
-percent of each other — that is the cross-check. Expect bench numbers
-somewhat **higher** than the QEMU instruction counts (flash wait states,
-multi-cycle instructions).
+percent of each other — that is the cross-check (measured: 0.0004% apart).
+Measured bench numbers run 7.3–8.0× above the QEMU instruction counts
+(flash wait states, multi-cycle instructions); the Lyapunov step is the
+outlier at 1.14× (FPU + hardware divide).
 
 ## 6. Report back
 
-Copy the whole serial log (including the two probe lines) and paste it
-back. It gets archived into `bench_results.json` as the hardware capture,
-next to the QEMU instruction counts.
+With `make firmware-capture` this is automatic: the parsed log lands in
+`firmware/stm32f4-bench/bench_hw.json` and is folded into
+`bench_results.json`. For a live-console run, copy the whole serial log
+(including the two probe lines).
 
 ## Troubleshooting
 
 | Symptom | Likely cause / fix |
 |---|---|
 | `st-flash` finds no device | WSL: usbipd not attached; Linux: check `lsusb`, try `sudo` |
+| `Can not connect to target` | use `--connect-under-reset` (in the Makefile); check the board is powered via CN1 |
 | No serial output | TX/RX swapped? baud set to 115200 8N1? adapter is 3.3 V (5 V adapters can damage PA2) |
 | Garbled serial | wrong baud (must be 115200) or bad GND |
 | Nothing at all, no LEDs | image not flashed (redo step 3), or boot pins disturbed |

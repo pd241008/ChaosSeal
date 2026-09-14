@@ -90,7 +90,7 @@ definitions (still the definitional reference for goodput/latency).
 | `scripts/verify_*.py`, `scripts/validate_benettin.py` | Independent verification gates |
 | `scripts/regen_*.py`, `scripts/sample_lyapunov.py`, `scripts/reference_spectrum_long_horizon.py` | Data regeneration utilities |
 | `results_v3/` | Canonical archive (68 run JSONs + CSVs + 13 figures) |
-| `firmware/stm32f4-bench/` | Cortex-M4 no_std benchmark: core_v2 sources vendored verbatim (deltas documented per file), crypto pinned to `core_v2/Cargo.lock`; QEMU-icount results in `bench_results.json` |
+| `firmware/stm32f4-bench/` | Cortex-M4 no_std benchmark: core_v2 sources vendored verbatim (deltas documented per file), crypto pinned to `core_v2/Cargo.lock`; hardware-measured results (STM32F4 Discovery, 2026-09-14, SysTick+DWT dual-clock validated) and QEMU-icount reference in `bench_results.json` |
 
 ## Decision Records
 
