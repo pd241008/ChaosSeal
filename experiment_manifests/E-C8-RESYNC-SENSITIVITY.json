@@ -15,6 +15,6 @@
     "chaosseal_vs_counter": "identical resync behavior"
   },
   "reproducibility_level": "R3 (wall-clock) / R2 (event sequence given seed+commit)",
-  "script": "run_sweep_v3.sh (Tier 2a)",
+  "script": "scripts/run_sweep_v3.sh (Tier 2a)",
   "aggregation": "analysis/v3_analysis.py (loss_sweep)"
 }

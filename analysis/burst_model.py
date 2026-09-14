@@ -43,9 +43,9 @@ def main():
     ax.legend(loc="center right")
     ax.grid(True, linestyle=":", alpha=0.6)
 
-    os.makedirs("figures", exist_ok=True)
-    out_path = "figures/burst_goodput_time.pdf"
-    png_path = "figures/burst_goodput_time.png"
+    os.makedirs("analysis/figures", exist_ok=True)
+    out_path = "analysis/figures/burst_goodput_time.pdf"
+    png_path = "analysis/figures/burst_goodput_time.png"
     fig.savefig(out_path, format="pdf", bbox_inches="tight")
     fig.savefig(png_path, format="png", bbox_inches="tight", dpi=150)
     print(f"Wrote {out_path} and {png_path} (T_epoch={t_epoch:.3f}s, Amortized={amortized_goodput:.3f} Mbps)")

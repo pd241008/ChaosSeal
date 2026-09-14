@@ -63,8 +63,9 @@ func run(args []string) error {
 	}
 
 	fmt.Printf("run_id=%s satellites=%d baselines=%v\n", result.RunID, cfg.Satellites, cfg.Baselines)
-	fmt.Printf("link: visible=%.1f%% mean_latency=%.2fms loss=%.3f\n",
-		result.LinkStats.VisiblePct, result.LinkStats.MeanLatencyMs, result.LinkStats.LossRate)
+	fmt.Printf("link: visible=%.1f%% any_visible=%.1f%% sats_in_view=%.2f mean_latency=%.2fms loss=%.3f\n",
+		result.LinkStats.VisiblePct, result.LinkStats.AnyVisiblePct, result.LinkStats.MeanSatsInView,
+		result.LinkStats.MeanLatencyMs, result.LinkStats.LossRate)
 	for name := range result.Baselines {
 		fmt.Printf("baseline %s: ok\n", name)
 	}

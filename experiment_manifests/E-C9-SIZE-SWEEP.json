@@ -16,6 +16,6 @@
     "reference_goodput_mbps_at_1024B": { "chaosseal": 1.646, "counter": 1.651, "bpsec": 1.598 }
   },
   "reproducibility_level": "R3 (wall-clock) / R2 (event sequence given seed+commit)",
-  "script": "run_sweep_v3.sh (Tier 2b)",
+  "script": "scripts/run_sweep_v3.sh (Tier 2b)",
   "aggregation": "analysis/v3_analysis.py (size_sweep)"
 }

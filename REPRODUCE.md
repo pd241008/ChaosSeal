@@ -33,7 +33,7 @@ firmware under emulation (deterministic instruction counts; see
 Or run everything through the pipeline driver, which builds both:
 
 ```bash
-./run_sweep_v3.sh results_v3_repro
+./scripts/run_sweep_v3.sh results_v3_repro
 ```
 
 ## Experiment Reproduction
@@ -44,7 +44,7 @@ N=1024 satellites, epoch=1200 s, 5 seeds × 10 revoked-set sizes
 R ∈ {1,2,4,8,16,32,64,128,256,512} = 50 runs:
 
 ```bash
-./run_sweep_v3.sh results_v3_repro
+./scripts/run_sweep_v3.sh results_v3_repro
 ```
 
 (Runtimes: ~0.3 s per run; the full driver including all tiers is minutes.)
@@ -154,7 +154,7 @@ python3 analysis/bootstrap_crossover.py  # 10,000 resamples over the 5-seed R-sw
 ### Burst-then-recover event model (paper Figure 7)
 
 ```bash
-python3 analysis/burst_model.py          # writes figures/burst_goodput_time.pdf
+python3 analysis/burst_model.py          # writes analysis/figures/burst_goodput_time.pdf
 ```
 
 ### Aggregation and figures (all claims)
@@ -166,7 +166,7 @@ python3 analysis/v4_generalization.py    # λ_min distribution, crossover surfac
 
 ## Legacy-generation sweeps (provenance only)
 
-`run_sweep.sh` and `run_sweep_v2.sh` drive the superseded `core/`+`netsim/`
+`scripts/legacy/run_sweep.sh` and `scripts/legacy/run_sweep_v2.sh` drive the superseded `core/`+`netsim/`
 generation. They are retained for provenance and are **not** part of any
 canonical claim; see `PROVENANCE.md`.
 

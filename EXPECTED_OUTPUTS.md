@@ -57,7 +57,7 @@ results -> <abs path>/results_fresh/smoke.json
 ## Tier 1a — R-Sweep (50 runs)
 
 ```bash
-./run_sweep_v3.sh results_v3_repro
+./scripts/run_sweep_v3.sh results_v3_repro
 ```
 
 **Expected runtime**: minutes (each run ≈ 0.3 s, plus builds)

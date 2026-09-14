@@ -43,15 +43,28 @@ on-cut behavior, spin-boundedness) run in `cargo test --release`.
 
 ## Simulator Visibility Model
 
-**Status**: Known open issue.
+**Status**: RESOLVED (2026-09-14) — geometry verified correct; metric semantics
+clarified and constellation-level coverage now reported.
 
 **Description**: The 24-satellite / 600 s window yields `visible_pct` ≈ 0.7–2%
-in v2/v3 runs, which is suspiciously low for a real 24-sat LEO constellation
-(flagged in `docs/PROGRESS.md`). Baselines transmit at the strongest-link
-moment rather than a fixed offset.
+in v2/v3 runs, which was flagged as suspiciously low for a 24-sat LEO
+constellation. Investigation (`TestVisibilityPhysics`, added 2026-09-14)
+verified the orbit/visibility geometry against the spherical-cap analytic
+expectation: a 550 km satellite above 10° elevation covers (1−cos 15°)/2 ≈
+1.696% of Earth's surface at any instant, and the measured per-satellite
+visible fraction (1.8–2.5% over one orbital period from a mid-latitude
+station) matches. The low `visible_pct` is therefore the correct
+per-(satellite, time)-sample scale, not a geometry bug. The operationally
+meaningful constellation-level numbers are now reported alongside it:
+`any_visible_pct` ≈ 42–59% (≥1 satellite in view) and
+`mean_sats_in_view` ≈ 0.42 over a 1200 s window. Baselines transmit at the
+strongest-link moment rather than a fixed offset; visibility is
+deterministic across seeds (fixed orbital phases), so window length, not
+the seed, drives the fraction.
 
-**Impact**: Absolute goodput values depend on this visibility heuristic;
-comparisons *between* baselines under the same link model are unaffected.
+**Impact**: Unchanged — absolute goodput values depend on this visibility
+model; comparisons *between* baselines under the same link model are
+unaffected.
 
 **Mitigation**: Claims are stated comparatively (chaosseal vs counter vs
 BPSec under identical links), never on absolute Mbps against external systems.
