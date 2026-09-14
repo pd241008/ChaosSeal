@@ -1,12 +1,20 @@
 {
   "platform": {
-    "emulator": "QEMU 11.1.1",
-    "machine": "netduinoplus2 (STM32F405, Cortex-M4F + FPU, 168 MHz class)",
-    "target_board": "STM32F4 Discovery (STM32F407VG) — same core, 1 MB flash / 192 KB RAM",
-    "icount": "shift=0 (virtual clock advances 1 ns per guest instruction)",
-    "timing_source": "SysTick downcounter, CLKSOURCE=CPU, no interrupt",
-    "timing_semantics": "QEMU: deterministic guest instruction counts. Hardware: true CPU cycles. cycles ≈ insns only under IPC=1 for in-order Cortex-M4.",
-    "dwt_status": "NOT emulated by QEMU for this machine (CYCCNT frozen; probed and confirmed) — hence SysTick"
+    "emulator": {
+      "name": "QEMU 11.1.1, machine netduinoplus2 (STM32F405-class Cortex-M4F + FPU)",
+      "timing_source": "SysTick downcounter, CLKSOURCE=CPU, under -icount shift=0",
+      "timing_semantics": "deterministic guest instruction counts (QEMU does not emulate the DWT for this machine — probed and confirmed)",
+      "determinism": "bench lines byte-identical across independent QEMU runs"
+    },
+    "hardware": {
+      "board": "STM32F4 Discovery (STM32F407VG, rev ?? chipid 0x413, 1 MB flash / 192 KB SRAM)",
+      "clock": "HSE 8 MHz -> PLL M=8/N=336/P=2/Q=7 = 168 MHz SYSCLK, APB1 42 MHz, 5 flash WS + I/D caches (Midas constants)",
+      "timing_source": "SysTick downcounter @ CPU clock (ticks = true CPU cycles) + DWT CYCCNT cross-check",
+      "clock_validation": "dual-clock probe of the same 100k-iteration loop: SysTick 1200006 vs DWT 1200011 (0.0004% apart) — PLL init verified on-target",
+      "capture": "ST-LINK/V2 has no VCP, so console lines are mirrored into reserved SRAM2 (0x2001C000, 'CSBL' header) and dumped via OpenOCD (firmware/stm32f4-bench/openocd-capture.cfg, Midas dump_image pattern); no USB-serial adapter needed",
+      "determinism": "two full capture runs byte-identical (fixed-point math + deterministic crypto; no OS jitter)",
+      "captured": "2026-09-14"
+    }
   },
   "provenance": {
     "core_source": "core_v2 @ 29be3b5 (merge of PR #20)",
@@ -14,11 +22,11 @@
     "crypto_versions": "pinned to core_v2/Cargo.lock: aes 0.8.4, aes-gcm 0.10.3, hkdf 0.12.4, hmac 0.12.1, sha2 0.10.9, zeroize 1.9.0 (std features off)"
   },
   "correctness_gates": {
-    "hmac_sha256_rfc4231_case1": "PASS (byte-exact KAT on target)",
-    "aes256gcm_1024B_roundtrip": "PASS (ciphertext len + tag verify + decrypt match)",
-    "hmac_commitment_verify_roundtrip": "PASS"
+    "hmac_sha256_rfc4231_case1": "PASS (byte-exact KAT on target, QEMU and hardware)",
+    "aes256gcm_1024B_roundtrip": "PASS (ciphertext len + tag verify + decrypt match, QEMU and hardware)",
+    "hmac_commitment_verify_roundtrip": "PASS (QEMU and hardware)",
+    "lambda1_sanity": "197 mnats/s @ 2000 steps IDENTICAL on desktop core_v2, QEMU, and hardware — Q32.32 bit-exactness across platforms"
   },
-  "determinism": "bench/ratio lines byte-identical across independent QEMU runs (icount)",
   "canonical_parameters": {
     "pendulum": { "n": 3, "mass": 1.0, "length": 1.0, "damping": 0.02, "coupling": 1.0, "form": "wrapped atan2(sin dtheta, cos dtheta)" },
     "integrator": { "method": "RK4", "dt_s": 0.01 },
@@ -26,29 +34,31 @@
     "payload_bytes": 1024
   },
   "results": {
-    "units": "tck = SysTick ticks = guest instructions under QEMU -icount shift=0",
-    "epoch_rk4_step": { "ticks_per_step": 90704, "us_at_168MHz_HW_assuming_IPC1": 540, "steps_per_epoch": 120000, "epoch_total_Mticks": 10884 },
-    "lyapunov_benettin": { "ticks_per_step": 104461, "us_at_168MHz_HW_assuming_IPC1": 622, "note": "timed over a 100-step run at a distinct IC so LLVM cannot CSE it against the untimed full run; lambda_1 sanity 0.197 nats/s at 2000 steps (design-stage 0.405 is a longer-horizon value)" },
-    "hkdf_packet_key": { "ticks_per_op": 3743, "us_at_168MHz": 22 },
-    "aes256gcm_enc_1024B": { "ticks_per_op": 41757, "us_at_168MHz": 249, "note": "software AES (no HW accelerator on STM32F4); includes per-call key schedule, matching core_v2 AesGcmCipher API" },
-    "hmac_commit_1024B": { "ticks_per_op": 7896, "us_at_168MHz": 47 },
-    "packet_total": { "ticks": 53396, "us_at_168MHz": 318, "composition": "HKDF derive + AES-256-GCM encrypt(1024B) + HMAC-SHA256 over 1040B ct" },
-    "epoch_maintenance": { "ticks_per_epoch": 10884480000, "packet_budget_equivalent": 203844 }
+    "units": "tck: QEMU = guest instructions; HW = true CPU cycles (SysTick @ 168 MHz, DWT-validated)",
+    "epoch_rk4_step": { "qemu_tck": 90704, "hw_tck": 685378, "hw_us": 4080, "qemu_hw_ratio": 7.6, "steps_per_epoch": 120000 },
+    "lyapunov_benettin": { "qemu_tck": 104461, "hw_tck": 119155, "hw_us": 709, "qemu_hw_ratio": 1.14, "note": "timed over a 100-step run at a distinct IC so LLVM cannot CSE it against the untimed full run; libm-heavy wrapped-coupling math dominates and benefits from the FPU + hardware divide on HW" },
+    "hkdf_packet_key": { "qemu_tck": 3743, "hw_tck": 28785, "hw_us": 171, "qemu_hw_ratio": 7.7 },
+    "aes256gcm_enc_1024B": { "qemu_tck": 41757, "hw_tck": 334488, "hw_us": 1991, "qemu_hw_ratio": 8.0, "note": "software AES (no HW accelerator on STM32F4); includes per-call key schedule, matching core_v2 AesGcmCipher API" },
+    "hmac_commit_1024B": { "qemu_tck": 7896, "hw_tck": 57903, "hw_us": 345, "qemu_hw_ratio": 7.3 },
+    "packet_total": { "qemu_tck": 53396, "hw_tck": 421176, "hw_us": 2507, "qemu_hw_ratio": 7.9, "composition": "HKDF derive + AES-256-GCM encrypt(1024B) + HMAC-SHA256 over 1040B ct" },
+    "epoch_maintenance": { "qemu_tck_per_epoch": 10884480000, "hw_tck_per_epoch": 82245360000, "hw_s_per_epoch": 489.6, "epoch_share_pct": 40.8, "packet_budget_equivalent": 195275 }
   },
   "interpretation": {
-    "epoch_overhead": "One epoch of Q32.32 RK4 key-schedule maintenance costs ~10.88 G ticks (~65 s at 168 MHz IPC=1), i.e. ~5.4% of the 1200 s epoch wall-clock — and is the same work the desktop pipeline performs, so no additional per-packet key-derivation burden exists beyond the 53.4k-tick packet path.",
-    "per_packet_cost": "53.4k ticks/pkt ≈ 318 us at 168 MHz IPC=1 for the full derive+encrypt+commit chain on a 1024 B payload.",
-    "hardware_pending": "These are QEMU-icount instruction counts. A real STM32F4 Discovery run with DWT CYCCNT will measure true cycles (expect higher than IPC=1 due to flash wait states and multi-cycle instructions). The firmware is flash-ready via 'make firmware-flash' (Midas procedure, USART2 console); only the on-hardware capture remains."
+    "qemu_vs_hw": "Hardware cycles run 7.3-8.0x above QEMU icount instruction counts for scalar/crypto work (flash wait states, multi-cycle loads/multiplies, per-call key schedules) — exactly the direction and rough magnitude expected for IPC << 1. The libm-heavy Lyapunov step is the outlier (1.14x): its float math uses the FPU and hardware divide, where QEMU's icount model over-counts.",
+    "epoch_overhead": "Measured on hardware: one epoch of Q32.32 RK4 key-schedule maintenance costs 82.25 G cycles = 489.6 s = 40.8% of the 1200 s epoch wall-clock. The earlier QEMU-based estimate (~65 s, 5.4%) assumed IPC=1 and is corrected by this measurement. Epoch maintenance remains schedulable (it is amortized background work, not per-packet), but it is NOT negligible and the paper must state 40.8%, not 5.4%.",
+    "per_packet_cost": "Measured on hardware: 2.51 ms per packet (421k cycles @ 168 MHz) for the full derive+encrypt+commit chain on a 1024 B payload. A 1200 s epoch with ~490 s of maintenance leaves ~118 s of headroom per packet-budget second — 195k packets/epoch of crypto budget, far above any per-satellite LEO goodput scenario in results_v3.",
+    "feasibility_verdict": "The protocol's crypto path is comfortably feasible on M4-class hardware. The honest cost is the epoch-maintenance share (~41% of the epoch in steady-state CPU time), which constrains duty-cycling but does not threaten the design."
   },
   "firmware": {
     "crate": "firmware/stm32f4-bench",
     "builds": {
       "qemu": "cargo build --release --features qemu --no-default-features  # semihosting console",
-      "hardware": "cargo build --release  # default hw: USART2 console + LEDs + PLL 168 MHz init"
+      "hardware": "cargo build --release  # default hw: USART2 console + LEDs + PLL 168 MHz init + SRAM bench log"
     },
-    "run_qemu": "qemu-system-arm -machine netduinoplus2 -nographic -semihosting-config enable=on,target=native -icount shift=0 -kernel target/thumbv7em-none-eabihf/release/stm32f4-bench",
-    "run_hardware": "make firmware-flash  # st-flash write bench.bin 0x08000000; console USART2 @115200 8N1 on PA2 (Midas-style, no debugger needed)",
-    "hw_bringup": "ported from the Midas artifact (../Midas/mcu/fw/src): HSE 8MHz -> PLL M=8/N=336/P=2/Q=7 = 168 MHz, 5 flash WS + caches, USART2 BRR (36<<4)|10, LEDs PD12..PD15",
-    "footprint": { "text_bytes": 110336, "bss_bytes": 49184 }
+    "run_qemu": "make firmware-bench",
+    "run_hardware": "make firmware-capture  # flash + OpenOCD SRAM-dump capture + parse; ST-LINK attached (WSL: usbipd attach --wsl --busid <id>)",
+    "hw_bringup": "ported from the Midas artifact (../Midas/mcu/fw/src): PLL constants, USART2 BRR (36<<4)|10, LEDs PD12..PD15, DWT enable",
+    "footprint": { "text_bytes": 112620, "bss_bytes": 49188, "note": "fits 1 MB flash / 112 KB linker RAM (memory.x caps RAM at 112K, reserving SRAM2 for the bench log)" },
+    "raw_records": { "parsed_hw_json": "bench_hw.json", "dump_schema": "scripts/parse_bench_dump.py docstring + memory.x comment" }
   }
 }
