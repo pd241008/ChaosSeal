@@ -86,39 +86,49 @@ structure (join cost = revocation cost) is unaffected.
 Part B; the join-vs-revoke equivalence follows from the construction, not the
 constant factors.
 
-## No Hardware Benchmark
+## Hardware Benchmark
 
-**Status**: Partially closed — firmware port complete, QEMU instruction
-counts measured, physical-hardware capture still pending.
+**Status**: CLOSED — measured on a physical STM32F4 Discovery
+(STM32F407VG) on 2026-09-14; see
+`firmware/stm32f4-bench/bench_results.json` (`bench_hw.json` for the raw
+parsed capture).
 
-**Description**: The `no_std` + `cortex-m-rt` port is done
-(`firmware/stm32f4-bench`): it compiles the core_v2 kinematics and crypto
-sources **verbatim** (deltas limited to import paths, libm for std-gated
-f64 math, and no OS-entropy nonce) with crypto crates pinned to the
-`core_v2/Cargo.lock` versions. All correctness gates pass on the emulated
-target (RFC 4231 HMAC KAT, AES-256-GCM roundtrip, HMAC commitment verify),
-and the QEMU Cortex-M4 (`netduinoplus2`, STM32F405-class) run yields
-deterministic instruction counts (SysTick under `-icount shift=0`):
-~90.7k ticks/RK4-step (10.88 G/epoch ≈ 5.4% of a 1200 s epoch at 168 MHz
-IPC=1) and ~53.4k ticks per packet (HKDF + AES-GCM 1024 B + HMAC). The
-hardware build carries Midas-style bring-up (PLL 168 MHz, USART2 console,
-status LEDs) and flashes with `make firmware-flash`; on real hardware the
-same SysTick registers count true CPU cycles, with the DWT enabled as a
-cross-check. See `firmware/stm32f4-bench/bench_results.json`.
+**Description**: The `no_std` + `cortex-m-rt` port compiles the core_v2
+kinematics and crypto sources **verbatim** (deltas limited to import
+paths, libm for std-gated f64 math, and no OS-entropy nonce) with crypto
+crates pinned to the `core_v2/Cargo.lock` versions. On the physical board
+(PLL 168 MHz, Midas bring-up) all correctness gates pass: RFC 4231 HMAC
+KAT byte-exact, AES-256-GCM roundtrip, HMAC commitment verify. Timing is
+by SysTick at CLKSOURCE=CPU (ticks = true CPU cycles), validated by an
+on-target dual-clock probe: SysTick 1,200,006 vs DWT CYCCNT 1,200,011
+over the same 100k-iteration loop (0.0004% apart). Two capture runs are
+byte-identical. Capture is serial-free: console lines are mirrored into
+reserved SRAM2 and dumped via OpenOCD (`make firmware-capture`), since
+the ST-LINK/V2 has no VCP.
 
-**Impact**: These are **instruction counts, not measured hardware cycles**:
-`cycles ≈ insns` only under an IPC=1 assumption for the in-order Cortex-M4,
-and real-hardware cycles will be higher (flash wait states, multi-cycle
-instructions). Cross-platform timing claims should quote QEMU numbers as a
-deterministic lower bound and relative-cost ranking only.
+**Measured numbers** (QEMU icount in parentheses):
+- RK4 epoch step: 685,378 cycles (90,704 insns) — ~4.08 ms/step
+- Lyapunov/Benettin step: 119,155 cycles (104,461 insns)
+- Packet path (HKDF + AES-GCM 1024 B + HMAC): 421,176 cycles
+  (53,396 insns) = **2.51 ms/packet**
+- Epoch maintenance: 82.25 G cycles = **489.6 s = 40.8% of the 1200 s
+  epoch** — the QEMU IPC=1 estimate (10.88 G ticks, 5.4%) was off by
+  7.5x; the paper must quote the measured 40.8%.
 
-**Mitigation**: The firmware is flash-ready for the STM32F4 Discovery
-(`make firmware-flash` → `st-flash write bench.bin 0x08000000`, console on
-USART2 @ 115200 8N1 — no debugger required); on hardware the SysTick counts
-true CPU cycles at CLKSOURCE=CPU and the DWT CYCCNT provides an independent
-cross-check (QEMU does not emulate the DWT — probed and documented in the
-firmware README). Until that capture exists, no cycles-per-epoch or
-per-packet µs claim may be quoted as a hardware measurement.
+**Impact**: Hardware cycles run 7.3–8.0x above QEMU instruction counts
+(flash wait states, multi-cycle loads/multiplies); the libm-heavy
+Lyapunov step is the outlier at 1.14x (FPU + hardware divide). The
+feasibility conclusion survives: 2.51 ms/packet leaves a 195k
+packet/epoch crypto budget, and maintenance is amortizable background
+work — but the epoch share is **not** negligible and must be stated as
+~41%, not ~5%.
+
+**Residual boundaries**: Numbers are specific to the F407 @ 168 MHz with
+the Midas PLL configuration (no hardware AES on this part); single-board
+sample (deterministic workload makes this low-risk, but a second board
+or an F7/H7 with hardware AES would shift absolute numbers); QEMU
+instruction counts remain useful only as a deterministic reference and
+relative-cost ranking, never as cycle estimates.
 
 ## Randomness and Reproducibility Boundary
 
