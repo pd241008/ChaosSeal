@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# Anchor to the repository root (script lives in scripts/), so the sweep can
+# be launched from any working directory.
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
 # Build Rust core and Go simulator once.
 echo "=== Building Rust core (core_v2) ==="
 (cd core_v2 && cargo build --release)

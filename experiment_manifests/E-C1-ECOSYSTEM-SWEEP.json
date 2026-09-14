@@ -18,6 +18,6 @@
     "crossover": "|R| between 64 and 128 (see C6 for the bootstrap CI)"
   },
   "reproducibility_level": "R3 (R2 for per-run event sequence given seed+commit)",
-  "script": "run_sweep_v3.sh (Tier 1a)",
+  "script": "scripts/run_sweep_v3.sh (Tier 1a)",
   "aggregation": "analysis/v3_analysis.py"
 }
