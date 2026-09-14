@@ -26,7 +26,7 @@ SIM     := $(CURDIR)/netsim_v2/chaoseal-sim
         reproduce-commit-sweep reproduce-corruption reproduce-membership \
         reproduce-spectrum reproduce-lambda-min reproduce-robustness \
         reproduce-commit-loss reproduce-bootstrap reproduce-analysis \
-        firmware-bench firmware-hw firmware-flash reproduce-all clean
+        firmware-bench firmware-hw firmware-flash firmware-failtest reproduce-all clean
 
 help:
 	@echo "Targets:"
@@ -50,6 +50,7 @@ help:
 	@echo "  make firmware-bench         build no_std Cortex-M4 bench + run under QEMU (skips run if QEMU absent)"
 	@echo "  make firmware-hw            build the hardware image (UART console) + bench.bin"
 	@echo "  make firmware-flash         flash bench.bin to the STM32F4 via st-flash (Midas-style)"
+	@echo "  make firmware-failtest      negative test: forced gate failure must print [fail] and never [done]"
 	@echo "  make clean                  remove fresh outputs"
 
 # ---------------------------------------------------------------------------
@@ -174,6 +175,20 @@ firmware-hw:
 firmware-flash: firmware-hw
 	st-flash write firmware/stm32f4-bench/bench.bin 0x08000000
 	@echo "Console: USART2 @ 115200 8N1 on PA2 (TX) — e.g. 'screen /dev/ttyUSB0 115200'"
+
+# Negative test: corrupts the KAT expectation so Gate 1 must fail. Verifies
+# the failure path (console [fail], red LED on HW, non-zero exit in QEMU).
+firmware-failtest:
+	cd firmware/stm32f4-bench && cargo build --release --features qemu,failtest --no-default-features
+	@if command -v qemu-system-arm >/dev/null 2>&1; then \
+	  cd firmware/stm32f4-bench && qemu-system-arm -machine netduinoplus2 -nographic \
+	    -semihosting-config enable=on,target=native -icount shift=0 \
+	    -kernel target/thumbv7em-none-eabihf/release/stm32f4-bench; \
+	  echo "---"; \
+	  echo "EXPECTED: [fail] line above, NO [done] line. Exit code is QEMU's (0), not the firmware's."; \
+	else \
+	  echo "qemu-system-arm not found: failtest binary built, run skipped"; \
+	fi
 
 # --- Everything except the long spectrum horizons ---------------------------
 reproduce-all: reproduce-rsweep reproduce-loss-sweep reproduce-size-sweep \

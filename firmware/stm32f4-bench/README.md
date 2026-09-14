@@ -33,6 +33,9 @@ qemu-system-arm -machine netduinoplus2 -nographic \
 
 ## Build & flash (STM32F4 Discovery, Midas procedure)
 
+> At-the-board version with wiring, LED codes, expected output, and
+> troubleshooting: **`FLASH_CHECKLIST.md`**.
+
 ```bash
 # WSL: attach ST-LINK first
 usbipd bind --hardware-id <VID:PID> && usbipd attach --wsl --hardware-id <VID:PID>
